@@ -183,8 +183,7 @@
                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                 <state key="normal" image="sharing_buttton"/>
                                 <connections>
-                                    <action selector="didTapShareButton" destination="nha-4D-tUW" eventType="touchUpInside" id="Xof-4g-1I0"/>
-                                    <action selector="didTapShareButton:" destination="nha-4D-tUW" eventType="touchUpInside" id="lVp-Mp-jxr"/>
+                                    <action selector="didTapShareButton:" destination="nha-4D-tUW" eventType="touchUpInside" id="OlK-PF-7a7"/>
                                 </connections>
                             </button>
                         </subviews>
