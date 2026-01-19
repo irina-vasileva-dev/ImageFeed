@@ -1,18 +1,10 @@
-//
-//  SplashViewController.swift
-//  ImageFeed
-//
-//  Created by Kira on 21.01.2025.
-//
-
 import UIKit
 
 final class SplashViewController: UIViewController {
     // MARK: - Vars
     
     private let showAuthenticationScreenSegueIdentifier = "ShowAuthentication"
-    //    private let showTableSegueIdentifier = "ShowWebView"
-    
+       
     // MARK: - OAuth2Service
     
     private let oauth2Service = OAuth2Service.shared
@@ -29,7 +21,10 @@ final class SplashViewController: UIViewController {
         if oauth2TokenStorage.token != nil {
             switchToTabBarController()
         } else {
-            performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
+            performSegue(
+                withIdentifier: showAuthenticationScreenSegueIdentifier,
+                sender: nil
+            )
         }
     }
     
@@ -46,29 +41,27 @@ final class SplashViewController: UIViewController {
     
     private func switchToTabBarController() {
         
-        // Убедитесь, что вы находитесь на главном потоке
-            guard Thread.isMainThread else {
-                // Если не на главном потоке, использовать dispatch
-                DispatchQueue.main.async {
-                    self.switchToTabBarController()
-                }
-                return
+        guard Thread.isMainThread else {
+            DispatchQueue.main.async {
+                self.switchToTabBarController()
             }
-        
-            guard let window = UIApplication.shared.windows.first else {
-                fatalError("Invalid Configuration")
-            }
-            
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            
-            guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "TabBarViewController") as? UITabBarController else {
-                fatalError("Unable to instantiate TabBarViewController")
-            }
-            
-            window.rootViewController = tabBarController
-            window.makeKeyAndVisible()
+            return
         }
+        
+        guard let window = UIApplication.shared.windows.first else {
+            fatalError("Invalid Configuration")
+        }
+            
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            
+        guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "TabBarViewController") as? UITabBarController else {
+            fatalError("Unable to instantiate TabBarViewController")
+        }
+            
+        window.rootViewController = tabBarController
+        window.makeKeyAndVisible()
     }
+}
 
 // MARK: - Prepare for segue
 
@@ -78,7 +71,11 @@ extension SplashViewController {
             guard
                 let navigationController = segue.destination as? UINavigationController,
                 let viewController = navigationController.viewControllers[0] as? AuthViewController
-            else { fatalError("Failed to prepare for \(showAuthenticationScreenSegueIdentifier)") }
+            else {
+                fatalError(
+                    "Failed to prepare for \(showAuthenticationScreenSegueIdentifier)"
+                )
+            }
             
             viewController.delegate = self
         } else {
@@ -90,7 +87,10 @@ extension SplashViewController {
 // MARK: - AuthViewControllerDelegate
 
 extension SplashViewController: AuthViewControllerDelegate {
-    func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String) {
+    func authViewController(
+        _ vc: AuthViewController,
+        didAuthenticateWithCode code: String
+    ) {
         dismiss(animated: true) { [weak self] in
             guard let self else { return }
             self.fetchOAuthToken(code)
@@ -102,9 +102,7 @@ extension SplashViewController: AuthViewControllerDelegate {
             guard let self = self else { return }
             switch result {
             case .success(let accessToken):
-                // Сохраняем токен в хранилище
                 self.oauth2TokenStorage.token = accessToken
-                // Переход к TabBarController
                 self.switchToTabBarController()
             case .failure:
                 print("Failed to fetch token")

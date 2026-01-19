@@ -1,10 +1,3 @@
-//
-//  OAuth2Service.swift
-//  ImageFeed
-//
-//  Created by Kira on 21.01.2025.
-//
-
 import Foundation
 
 // MARK: - class OAuth2Service
@@ -24,9 +17,14 @@ final class OAuth2Service {
     
     // MARK: - fetchOAuthToken
     
-    func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
+    func fetchOAuthToken(
+        _ code: String,
+        completion: @escaping (Result<String, Error>) -> Void
+    ) {
         
-        guard var components = URLComponents(string: "https://unsplash.com/oauth/token") else { return }
+        guard var components = URLComponents(string: "https://unsplash.com/oauth/token") else {
+            return
+        }
         
         components.queryItems = [
             URLQueryItem(name: "client_id", value: Constants.accessKey),
@@ -43,7 +41,12 @@ final class OAuth2Service {
             request.httpMethod = "POST"
             print("Request: \(request)")
             
-            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            let task = URLSession.shared.dataTask(
+                with: request
+            ) {
+ data,
+ response,
+ error in
                 if let error = error {
                     print("Error: \(error)")
                     DispatchQueue.main.async {
@@ -52,14 +55,15 @@ final class OAuth2Service {
                     return
                 }
                 
-                // Проверяем статус-код
                 if let response = response as? HTTPURLResponse {
-                    // Интерполяция должна работать правильно
                     print("HTTP Status Code: \(response.statusCode)")
                     
                     if response.statusCode < 200 || response.statusCode >= 300 {
-                        // Печатаем содержимое ответа для дополнительной информации
-                        if let data = data, let responseBody = String(data: data, encoding: .utf8) {
+                        if let data = data,
+                           let responseBody = String(
+                            data: data,
+                            encoding: .utf8
+                           ) {
                             print("Response Body: \(responseBody)")
                         }
                         DispatchQueue.main.async {
@@ -80,7 +84,10 @@ final class OAuth2Service {
                 
                 
                 do {
-                    let json = try JSONDecoder().decode(OAuthTokenResponseBody.self, from: data)
+                    let json = try JSONDecoder().decode(
+                        OAuthTokenResponseBody.self,
+                        from: data
+                    )
                     OAuth2TokenStorage().token = json.accessToken
                     print("Access Token: \(json.accessToken)")
                     DispatchQueue.main.async {
@@ -106,25 +113,40 @@ extension URLSession {
         for request: URLRequest,
         completion: @escaping (Result<Data, Error>) -> Void
     ) -> URLSessionTask {
-        let fulfillCompletionOnTheMainThread: (Result<Data, Error>) -> Void = { result in
+        let fulfillCompletionOnTheMainThread: (
+            Result<Data, Error>
+        ) -> Void = { result in
             DispatchQueue.main.async {
                 completion(result)
             }
         }
         
-        let task = dataTask(with: request, completionHandler: { data, response, error in
-            if let data = data, let response = response, let statusCode = (response as? HTTPURLResponse)?.statusCode {
-                if 200 ..< 300 ~= statusCode {
-                    fulfillCompletionOnTheMainThread(.success(data))
-                } else {
-                    fulfillCompletionOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode)))
-                }
-            } else if let error = error {
-                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlRequestError(error)))
-            } else {
-                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError))
-            }
-        })
+        let task = dataTask(
+with: request,
+ completionHandler: {
+ data,
+ response,
+ error in
+     if let data = data,
+        let response = response,
+        let statusCode = (response as? HTTPURLResponse)?.statusCode {
+         if 200 ..< 300 ~= statusCode {
+             fulfillCompletionOnTheMainThread(.success(data))
+         } else {
+             fulfillCompletionOnTheMainThread(
+                .failure(NetworkError.httpStatusCode(statusCode))
+             )
+         }
+     } else if let error = error {
+         fulfillCompletionOnTheMainThread(
+            .failure(NetworkError.urlRequestError(error))
+         )
+     } else {
+         fulfillCompletionOnTheMainThread(
+            .failure(NetworkError.urlSessionError)
+         )
+     }
+ })
         
         return task
     }

@@ -1,10 +1,3 @@
-//
-//  OAuth2TokenStorage.swift
-//  ImageFeed
-//
-//  Created by Kira on 21.01.2025.
-//
-
 import Foundation
 
 final class OAuth2TokenStorage {

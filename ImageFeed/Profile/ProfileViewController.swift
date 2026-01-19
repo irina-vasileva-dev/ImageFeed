@@ -7,7 +7,7 @@ final class ProfileViewController: UIViewController {
         let stackView = UIStackView()
         stackView.axis = .vertical
         stackView.alignment = .leading
-        stackView.spacing = Constants.stackViewSpacing
+        stackView.spacing = UIConstants.stackViewSpacing
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
@@ -24,7 +24,7 @@ final class ProfileViewController: UIViewController {
     private lazy var userNameLabel: UILabel = {
         let label = UILabel()
         label.text = "Екатерина Новикова"
-        label.font = .boldSystemFont(ofSize: Constants.boldFontSize)
+        label.font = .boldSystemFont(ofSize: UIConstants.boldFontSize)
         label.textColor = .white
         return label
     }()
@@ -32,7 +32,7 @@ final class ProfileViewController: UIViewController {
     private lazy var nickNameLabel: UILabel = {
         let label = UILabel()
         label.text = "@ekaterina_nov"
-        label.font = .systemFont(ofSize: Constants.detailFontSize)
+        label.font = .systemFont(ofSize: UIConstants.detailFontSize)
         label.textColor = Colors.nicknameGray
         return label
     }()
@@ -40,7 +40,7 @@ final class ProfileViewController: UIViewController {
     private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
         label.text = "Hello, world!"
-        label.font = .systemFont(ofSize: Constants.detailFontSize)
+        label.font = .systemFont(ofSize: UIConstants.detailFontSize)
         label.textColor = .white
         return label
     }()
@@ -56,7 +56,7 @@ final class ProfileViewController: UIViewController {
     private lazy var favoritesLabel: UILabel = {
         let label = UILabel()
         label.text = "Избранное"
-        label.font = .boldSystemFont(ofSize: Constants.boldFontSize)
+        label.font = .boldSystemFont(ofSize: UIConstants.boldFontSize)
         label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -89,13 +89,13 @@ final class ProfileViewController: UIViewController {
     
     private func configureProfileImageView() {
         NSLayoutConstraint.activate([
-            profileImageView.heightAnchor.constraint(equalToConstant: Constants.profileImageSize),
-            profileImageView.widthAnchor.constraint(equalToConstant: Constants.profileImageSize)
+            profileImageView.heightAnchor.constraint(equalToConstant: UIConstants.profileImageSize),
+            profileImageView.widthAnchor.constraint(equalToConstant: UIConstants.profileImageSize)
         ])
         
         NSLayoutConstraint.activate([
-            logoutButton.heightAnchor.constraint(equalToConstant: Constants.buttonSize),
-            logoutButton.widthAnchor.constraint(equalToConstant: Constants.buttonSize)
+            logoutButton.heightAnchor.constraint(equalToConstant: UIConstants.buttonSize),
+            logoutButton.widthAnchor.constraint(equalToConstant: UIConstants.buttonSize)
         ])
     }
     
@@ -119,34 +119,34 @@ final class ProfileViewController: UIViewController {
         NSLayoutConstraint.activate([
             mainStackView.topAnchor.constraint(
                 equalTo: safeArea.topAnchor,
-                constant: Constants.stackViewTopOffset
+                constant: UIConstants.stackViewTopOffset
             ),
             mainStackView.leadingAnchor.constraint(
                 equalTo: safeArea.leadingAnchor,
-                constant: Constants.stackViewLeadingOffset
+                constant: UIConstants.stackViewLeadingOffset
             ),
             logoutButton.trailingAnchor.constraint(
                 equalTo: safeArea.trailingAnchor,
-                constant: -Constants.buttonTrailingOffset
+                constant: -UIConstants.buttonTrailingOffset
             ),
             logoutButton.centerYAnchor.constraint(
                 equalTo: profileImageView.centerYAnchor
             ),
             favoritesLabel.leadingAnchor.constraint(
                 equalTo: safeArea.leadingAnchor,
-                constant: Constants.favoritesLabelLeading
+                constant: UIConstants.favoritesLabelLeading
             ),
             favoritesLabel.topAnchor.constraint(
                 equalTo: descriptionLabel.bottomAnchor,
-                constant: Constants.favoritesLabelTop
+                constant: UIConstants.favoritesLabelTop
             ),
             noPhotoImageView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
             noPhotoImageView.topAnchor.constraint(
                 equalTo: safeArea.topAnchor,
-                constant: Constants.noPhotoTop
+                constant: UIConstants.noPhotoTop
             ),
-            noPhotoImageView.heightAnchor.constraint(equalToConstant: Constants.noPhotoImageSize),
-            noPhotoImageView.widthAnchor.constraint(equalToConstant: Constants.noPhotoImageSize)
+            noPhotoImageView.heightAnchor.constraint(equalToConstant: UIConstants.noPhotoImageSize),
+            noPhotoImageView.widthAnchor.constraint(equalToConstant: UIConstants.noPhotoImageSize)
         ])
     }
     
@@ -163,7 +163,7 @@ final class ProfileViewController: UIViewController {
 }
 
 // MARK: - Constants
-private enum Constants {
+private enum UIConstants {
     static let stackViewSpacing: CGFloat = 8
     static let stackViewTopOffset: CGFloat = 32
     static let stackViewLeadingOffset: CGFloat = 16
