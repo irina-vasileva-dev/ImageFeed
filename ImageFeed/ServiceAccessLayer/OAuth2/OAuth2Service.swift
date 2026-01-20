@@ -1,7 +1,5 @@
 import Foundation
 
-// MARK: - class OAuth2Service
-
 final class OAuth2Service {
     
     // MARK: - Синглтон
