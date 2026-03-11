@@ -1,49 +1,36 @@
-
 import UIKit
 @preconcurrency import WebKit
 
-// MARK: - protocol WebViewViewControllerDelegate
+// MARK: - WebViewViewControllerDelegate
 
 protocol WebViewViewControllerDelegate: AnyObject {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String)
     func webViewViewControllerDidCancel(_ vc: WebViewViewController)
 }
 
-// MARK: - class WebViewViewController
+// MARK: - WebViewViewController
 
 final class WebViewViewController: UIViewController {
-    
-    // MARK: - IBOutlet WKWebView
-    
+
+    private let logger = AppLogger.logger(category: "WebView")
     @IBOutlet private var webView: WKWebView!
-    
-    // MARK: - UIProgressView
-    
     @IBOutlet private var progressView: UIProgressView!
-    
-    // MARK: - delegate: WebViewViewControllerDelegate
-    
+
     weak var delegate: WebViewViewControllerDelegate?
-    
-    // MARK: - viewDidLoad
-    
+
+    // MARK: - Lifecycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         webView.navigationDelegate = self
-        
         loadAuthView()
         updateProgress()
     }
-    
-    // MARK: - didTapBackButton
-    
+
     @IBAction private func didTapBackButton(_ sender: Any?) {
         delegate?.webViewViewControllerDidCancel(self)
     }
-    
-    // MARK: - KVO
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         webView.addObserver(
@@ -63,8 +50,6 @@ final class WebViewViewController: UIViewController {
                 context: nil
             )
     }
-    
-    // MARK: - Обработчик обновлений
     
     override func observeValue(
         forKeyPath keyPath: String?,
@@ -90,20 +75,20 @@ final class WebViewViewController: UIViewController {
     }
 }
 
-// MARK: - Формирование URL
+// MARK: - Auth URL
 
 extension WebViewViewController {
-    
+
     private func loadAuthView() {
-        guard var urlComponents = URLComponents(string: Constants.unsplashAuthorizeURLString) else {
+        guard var urlComponents = URLComponents(string: URLs.unsplashAuthorizeURLString) else {
             return
         }
         
         urlComponents.queryItems = [
-            URLQueryItem(name: "client_id", value: Constants.accessKey),
-            URLQueryItem(name: "redirect_uri", value: Constants.redirectURI),
-            URLQueryItem(name: "response_type", value: "code"),
-            URLQueryItem(name: "scope", value: Constants.accessScope)
+            URLQueryItem(name: "client_id", value: OAuth2Constants.accessKey),
+            URLQueryItem(name: "redirect_uri", value: OAuth2Constants.redirectURI),
+            URLQueryItem(name: "response_type", value: OAuth2Constants.responseType),
+            URLQueryItem(name: "scope", value: OAuth2Constants.accessScope)
         ]
         
         guard let url = urlComponents.url else {
@@ -118,6 +103,7 @@ extension WebViewViewController {
 // MARK: - WKNavigationDelegate
 
 extension WebViewViewController: WKNavigationDelegate {
+
     func webView(
         _ webView: WKWebView,
         decidePolicyFor navigationAction: WKNavigationAction,
@@ -135,11 +121,11 @@ extension WebViewViewController: WKNavigationDelegate {
         if
             let url = navigationAction.request.url,
             let urlComponents = URLComponents(string: url.absoluteString),
-            urlComponents.path == Constants.autorize,
+            urlComponents.path == URLs.authorizeRedirectPath,
             let items = urlComponents.queryItems,
-            let codeItem = items.first(where: { $0.name == "code" })
+            let codeItem = items.first(where: { $0.name == OAuth2Constants.codeQueryParameterName })
         {
-            print("Code: \(String(describing: codeItem.value))")
+            logger.debug("Code: \(String(describing: codeItem.value))")
             return codeItem.value
         } else {
             return nil

@@ -1,83 +1,96 @@
 import UIKit
 
+// MARK: - SplashViewController
+
 final class SplashViewController: UIViewController {
-    // MARK: - Vars
-    
-    private let showAuthenticationScreenSegueIdentifier = "ShowAuthentication"
-       
-    // MARK: - OAuth2Service
-    
-    private let oauth2Service = OAuth2Service.shared
-    
-    // MARK: - OAuth2TokenStorage
-    
-    private let oauth2TokenStorage = OAuth2TokenStorage()
-    
+
+    private let logger = AppLogger.logger(category: "Splash")
+    private let oauth2Service: OAuth2ServiceProtocol
+    private let tokenStorage: OAuth2TokenStorageProtocol
+
+    init(
+        oauth2Service: OAuth2ServiceProtocol = OAuth2Service.shared,
+        tokenStorage: OAuth2TokenStorageProtocol = OAuth2TokenStorage.shared
+    ) {
+        self.oauth2Service = oauth2Service
+        self.tokenStorage = tokenStorage
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        self.oauth2Service = OAuth2Service.shared
+        self.tokenStorage = OAuth2TokenStorage.shared
+        super.init(coder: coder)
+    }
+
     // MARK: - Lifecycle
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
-        if oauth2TokenStorage.token != nil {
+        if tokenStorage.token != nil {
             switchToTabBarController()
         } else {
-            performSegue(
-                withIdentifier: showAuthenticationScreenSegueIdentifier,
-                sender: nil
-            )
+            performSegue(withIdentifier: SegueIdentifier.showAuthentication, sender: nil)
         }
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setNeedsStatusBarAppearanceUpdate()
     }
-    
+
     override var preferredStatusBarStyle: UIStatusBarStyle {
         .lightContent
     }
-    
-    // MARK: - Private methods
-    
+
+    // MARK: - Private
+
     private func switchToTabBarController() {
-        
         guard Thread.isMainThread else {
-            DispatchQueue.main.async {
-                self.switchToTabBarController()
-            }
+            DispatchQueue.main.async { [weak self] in self?.switchToTabBarController() }
             return
         }
-        
-        guard let window = UIApplication.shared.windows.first else {
-            fatalError("Invalid Configuration")
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            assertionFailure("Invalid window configuration")
+            return
         }
-            
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            
-        guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "TabBarViewController") as? UITabBarController else {
-            fatalError("Unable to instantiate TabBarViewController")
+        guard let tabBarController = storyboard.instantiateViewController(
+            withIdentifier: "TabBarViewController"
+        ) as? UITabBarController else {
+            assertionFailure("Unable to instantiate TabBarViewController")
+            return
         }
-            
         window.rootViewController = tabBarController
         window.makeKeyAndVisible()
     }
+
+    private func fetchOAuthToken(_ code: String) {
+        oauth2Service.fetchOAuthToken(code) { [weak self] result in
+            guard let self else { return }
+            switch result {
+            case .success:
+                self.switchToTabBarController()
+            case .failure:
+                self.logger.error("Failed to fetch OAuth token")
+            }
+        }
+    }
 }
 
-// MARK: - Prepare for segue
+// MARK: - Navigation (prepare for segue)
 
 extension SplashViewController {
+
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == showAuthenticationScreenSegueIdentifier {
-            guard
-                let navigationController = segue.destination as? UINavigationController,
-                let viewController = navigationController.viewControllers[0] as? AuthViewController
-            else {
-                fatalError(
-                    "Failed to prepare for \(showAuthenticationScreenSegueIdentifier)"
-                )
+        if segue.identifier == SegueIdentifier.showAuthentication {
+            guard let navigationController = segue.destination as? UINavigationController,
+                  let authVC = navigationController.viewControllers.first as? AuthViewController else {
+                assertionFailure("Failed to prepare for \(SegueIdentifier.showAuthentication)")
+                return
             }
-            
-            viewController.delegate = self
+            authVC.delegate = self
         } else {
             super.prepare(for: segue, sender: sender)
         }
@@ -87,27 +100,10 @@ extension SplashViewController {
 // MARK: - AuthViewControllerDelegate
 
 extension SplashViewController: AuthViewControllerDelegate {
-    func authViewController(
-        _ vc: AuthViewController,
-        didAuthenticateWithCode code: String
-    ) {
+
+    func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String) {
         dismiss(animated: true) { [weak self] in
-            guard let self else { return }
-            self.fetchOAuthToken(code)
-        }
-    }
-    
-    private func fetchOAuthToken(_ code: String) {
-        oauth2Service.fetchOAuthToken(code) { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .success(let accessToken):
-                self.oauth2TokenStorage.token = accessToken
-                self.switchToTabBarController()
-            case .failure:
-                print("Failed to fetch token")
-                break
-            }
+            self?.fetchOAuthToken(code)
         }
     }
 }

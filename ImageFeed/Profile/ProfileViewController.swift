@@ -16,14 +16,14 @@ final class ProfileViewController: UIViewController {
         let imageView = UIImageView()
         imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(named: "profile_image")
+        imageView.image = UIImage(named: Profile.profileImage)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
     
     private lazy var userNameLabel: UILabel = {
         let label = UILabel()
-        label.text = "Екатерина Новикова"
+        label.text = Profile.userName
         label.font = .boldSystemFont(ofSize: UIConstants.boldFontSize)
         label.textColor = .white
         return label
@@ -31,7 +31,7 @@ final class ProfileViewController: UIViewController {
     
     private lazy var nickNameLabel: UILabel = {
         let label = UILabel()
-        label.text = "@ekaterina_nov"
+        label.text = Profile.nickName
         label.font = .systemFont(ofSize: UIConstants.detailFontSize)
         label.textColor = Colors.nicknameGray
         return label
@@ -39,7 +39,7 @@ final class ProfileViewController: UIViewController {
     
     private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
-        label.text = "Hello, world!"
+        label.text = Profile.description
         label.font = .systemFont(ofSize: UIConstants.detailFontSize)
         label.textColor = .white
         return label
@@ -47,7 +47,7 @@ final class ProfileViewController: UIViewController {
     
     private lazy var logoutButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(named: "logout"), for: .normal)
+        button.setImage(UIImage(named: Profile.logout), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(logoutButtonTapped), for: .touchUpInside)
         return button
@@ -55,7 +55,7 @@ final class ProfileViewController: UIViewController {
     
     private lazy var favoritesLabel: UILabel = {
         let label = UILabel()
-        label.text = "Избранное"
+        label.text = Profile.favorites
         label.font = .boldSystemFont(ofSize: UIConstants.boldFontSize)
         label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -66,7 +66,7 @@ final class ProfileViewController: UIViewController {
         let imageView = UIImageView()
         imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(named: "no_photo")
+        imageView.image = UIImage(named: Profile.noPhoto)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -184,4 +184,14 @@ private enum UIConstants {
 private enum Colors {
     static let background = UIColor(hex: "#1A1B22")
     static let nicknameGray = UIColor(hex: "#AEAFB4")
+}
+
+private enum Profile {
+    static let noPhoto = "no_photo"
+    static let favorites = "Избранное"
+    static let logout = "logout"
+    static let description = "Hello, world!"
+    static let nickName = "@ekaterina_nov"
+    static let userName = "Екатерина Новикова"
+    static let profileImage = "profile_image"
 }

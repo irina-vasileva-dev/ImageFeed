@@ -267,7 +267,7 @@
         <!--Web View-->
         <scene sceneID="Gdp-3Z-ue2">
             <objects>
-                <viewController id="nvL-Xq-6fN" userLabel="Web View" customClass="WebViewViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="nvL-Xq-6fN" userLabel="Web View" customClass="WebViewViewController" customModule="ImageFeed" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="BU3-9g-vAl">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="886"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -314,7 +314,7 @@
                     <navigationItem key="navigationItem" id="cKD-rn-bWB"/>
                     <connections>
                         <outlet property="progressView" destination="UbR-Bu-R2z" id="WXS-Lf-QjK"/>
-                        <outlet property="webView" destination="868-2h-qga" id="m1N-b7-AGt"/>
+                        <outlet property="webView" destination="868-2h-qga" id="75m-wb-yKW"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="fYA-7h-1T9" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -350,7 +350,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="E45-N2-aFX" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-2135" y="-1177"/>
+            <point key="canvasLocation" x="-2197" y="-1177"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="yjr-FB-CJF">
