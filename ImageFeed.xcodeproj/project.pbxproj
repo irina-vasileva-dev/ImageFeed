@@ -32,6 +32,7 @@
 		CEFD8D6A2F1DE85100CA7E75 /* OAuth2Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFD8D632F1DE85100CA7E75 /* OAuth2Service.swift */; };
 		CEFD8D6B2F1DE85100CA7E75 /* OAuth2TokenStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFD8D642F1DE85100CA7E75 /* OAuth2TokenStorage.swift */; };
 		CEFD8D6C2F1DE85100CA7E75 /* URLSession+data.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFD8D662F1DE85100CA7E75 /* URLSession+data.swift */; };
+		CEFD8D6D2F1DE85100CA7E75 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFD8D6E2F1DE85100CA7E75 /* WebKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +63,7 @@
 		CEFD8D642F1DE85100CA7E75 /* OAuth2TokenStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OAuth2TokenStorage.swift; sourceTree = "<group>"; };
 		CEFD8D652F1DE85100CA7E75 /* OAuthTokenResponseBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OAuthTokenResponseBody.swift; sourceTree = "<group>"; };
 		CEFD8D662F1DE85100CA7E75 /* URLSession+data.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URLSession+data.swift"; sourceTree = "<group>"; };
+		CEFD8D6E2F1DE85100CA7E75 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEFD8D6D2F1DE85100CA7E75 /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

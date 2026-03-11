@@ -1,6 +1,5 @@
 import UIKit
 
-// MARK: - SplashViewController
 
 final class SplashViewController: UIViewController {
 
@@ -47,7 +46,7 @@ final class SplashViewController: UIViewController {
 
     private func switchToTabBarController() {
         guard Thread.isMainThread else {
-            DispatchQueue.main.async { [weak self] in self?.switchToTabBarController() }
+            DispatchQueue.main.async { self.switchToTabBarController() }
             return
         }
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
