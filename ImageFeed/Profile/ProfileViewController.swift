@@ -7,7 +7,7 @@ final class ProfileViewController: UIViewController {
         let stackView = UIStackView()
         stackView.axis = .vertical
         stackView.alignment = .leading
-        stackView.spacing = Constants.stackViewSpacing
+        stackView.spacing = UIConstants.stackViewSpacing
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
@@ -16,38 +16,38 @@ final class ProfileViewController: UIViewController {
         let imageView = UIImageView()
         imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(named: "profile_image")
+        imageView.image = UIImage(named: Profile.profileImage)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
     
     private lazy var userNameLabel: UILabel = {
         let label = UILabel()
-        label.text = "Екатерина Новикова"
-        label.font = .boldSystemFont(ofSize: Constants.boldFontSize)
+        label.text = Profile.userName
+        label.font = .boldSystemFont(ofSize: UIConstants.boldFontSize)
         label.textColor = .white
         return label
     }()
     
     private lazy var nickNameLabel: UILabel = {
         let label = UILabel()
-        label.text = "@ekaterina_nov"
-        label.font = .systemFont(ofSize: Constants.detailFontSize)
+        label.text = Profile.nickName
+        label.font = .systemFont(ofSize: UIConstants.detailFontSize)
         label.textColor = Colors.nicknameGray
         return label
     }()
     
     private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
-        label.text = "Hello, world!"
-        label.font = .systemFont(ofSize: Constants.detailFontSize)
+        label.text = Profile.description
+        label.font = .systemFont(ofSize: UIConstants.detailFontSize)
         label.textColor = .white
         return label
     }()
     
     private lazy var logoutButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(named: "logout"), for: .normal)
+        button.setImage(UIImage(named: Profile.logout), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(logoutButtonTapped), for: .touchUpInside)
         return button
@@ -55,8 +55,8 @@ final class ProfileViewController: UIViewController {
     
     private lazy var favoritesLabel: UILabel = {
         let label = UILabel()
-        label.text = "Избранное"
-        label.font = .boldSystemFont(ofSize: Constants.boldFontSize)
+        label.text = Profile.favorites
+        label.font = .boldSystemFont(ofSize: UIConstants.boldFontSize)
         label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -66,7 +66,7 @@ final class ProfileViewController: UIViewController {
         let imageView = UIImageView()
         imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(named: "no_photo")
+        imageView.image = UIImage(named: Profile.noPhoto)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -89,13 +89,13 @@ final class ProfileViewController: UIViewController {
     
     private func configureProfileImageView() {
         NSLayoutConstraint.activate([
-            profileImageView.heightAnchor.constraint(equalToConstant: Constants.profileImageSize),
-            profileImageView.widthAnchor.constraint(equalToConstant: Constants.profileImageSize)
+            profileImageView.heightAnchor.constraint(equalToConstant: UIConstants.profileImageSize),
+            profileImageView.widthAnchor.constraint(equalToConstant: UIConstants.profileImageSize)
         ])
         
         NSLayoutConstraint.activate([
-            logoutButton.heightAnchor.constraint(equalToConstant: Constants.buttonSize),
-            logoutButton.widthAnchor.constraint(equalToConstant: Constants.buttonSize)
+            logoutButton.heightAnchor.constraint(equalToConstant: UIConstants.buttonSize),
+            logoutButton.widthAnchor.constraint(equalToConstant: UIConstants.buttonSize)
         ])
     }
     
@@ -119,34 +119,34 @@ final class ProfileViewController: UIViewController {
         NSLayoutConstraint.activate([
             mainStackView.topAnchor.constraint(
                 equalTo: safeArea.topAnchor,
-                constant: Constants.stackViewTopOffset
+                constant: UIConstants.stackViewTopOffset
             ),
             mainStackView.leadingAnchor.constraint(
                 equalTo: safeArea.leadingAnchor,
-                constant: Constants.stackViewLeadingOffset
+                constant: UIConstants.stackViewLeadingOffset
             ),
             logoutButton.trailingAnchor.constraint(
                 equalTo: safeArea.trailingAnchor,
-                constant: -Constants.buttonTrailingOffset
+                constant: -UIConstants.buttonTrailingOffset
             ),
             logoutButton.centerYAnchor.constraint(
                 equalTo: profileImageView.centerYAnchor
             ),
             favoritesLabel.leadingAnchor.constraint(
                 equalTo: safeArea.leadingAnchor,
-                constant: Constants.favoritesLabelLeading
+                constant: UIConstants.favoritesLabelLeading
             ),
             favoritesLabel.topAnchor.constraint(
                 equalTo: descriptionLabel.bottomAnchor,
-                constant: Constants.favoritesLabelTop
+                constant: UIConstants.favoritesLabelTop
             ),
             noPhotoImageView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
             noPhotoImageView.topAnchor.constraint(
                 equalTo: safeArea.topAnchor,
-                constant: Constants.noPhotoTop
+                constant: UIConstants.noPhotoTop
             ),
-            noPhotoImageView.heightAnchor.constraint(equalToConstant: Constants.noPhotoImageSize),
-            noPhotoImageView.widthAnchor.constraint(equalToConstant: Constants.noPhotoImageSize)
+            noPhotoImageView.heightAnchor.constraint(equalToConstant: UIConstants.noPhotoImageSize),
+            noPhotoImageView.widthAnchor.constraint(equalToConstant: UIConstants.noPhotoImageSize)
         ])
     }
     
@@ -163,7 +163,7 @@ final class ProfileViewController: UIViewController {
 }
 
 // MARK: - Constants
-private enum Constants {
+private enum UIConstants {
     static let stackViewSpacing: CGFloat = 8
     static let stackViewTopOffset: CGFloat = 32
     static let stackViewLeadingOffset: CGFloat = 16
@@ -184,4 +184,14 @@ private enum Constants {
 private enum Colors {
     static let background = UIColor(hex: "#1A1B22")
     static let nicknameGray = UIColor(hex: "#AEAFB4")
+}
+
+private enum Profile {
+    static let noPhoto = "no_photo"
+    static let favorites = "Избранное"
+    static let logout = "logout"
+    static let description = "Hello, world!"
+    static let nickName = "@ekaterina_nov"
+    static let userName = "Екатерина Новикова"
+    static let profileImage = "profile_image"
 }
