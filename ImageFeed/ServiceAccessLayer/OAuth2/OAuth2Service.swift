@@ -93,7 +93,7 @@ final class OAuth2Service: OAuth2ServiceProtocol {
             if (error as NSError).code == NSURLErrorCancelled {
                 completions.forEach { $0(.failure(OAuth2Error.cancelled)) }
             } else {
-                logger.error("[fetchOAuthToken]: \(error.localizedDescription)")
+                logger.error("[OAuth2Service fetchOAuthToken]: \(error.localizedDescription)")
                 completions.forEach { $0(.failure(error)) }
             }
         }

@@ -21,17 +21,16 @@ final class SplashViewController: UIViewController {
         super.init(coder: coder)
     }
 
-    // MARK: - Lifecycle
+    override func loadView() {
+        view = SplashView()
+    }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if let token = tokenStorage.token {
             fetchProfile(token: token)
         } else {
-            performSegue(
-                withIdentifier: SegueIdentifier.showAuthentication,
-                sender: nil
-            )
+            showAuthViewController()
         }
     }
 
@@ -44,8 +43,6 @@ final class SplashViewController: UIViewController {
         .lightContent
     }
 
-    // MARK: - Private
-
     private func switchToTabBarController() {
         guard Thread.isMainThread else {
             DispatchQueue.main.async { self.switchToTabBarController() }
@@ -56,15 +53,16 @@ final class SplashViewController: UIViewController {
             assertionFailure("Invalid window configuration")
             return
         }
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        guard let tabBarController = storyboard.instantiateViewController(
-            withIdentifier: "TabBarViewController"
-        ) as? UITabBarController else {
-            assertionFailure("Unable to instantiate TabBarViewController")
-            return
-        }
+        let tabBarController = TabBarController()
         window.rootViewController = tabBarController
         window.makeKeyAndVisible()
+    }
+
+    private func showAuthViewController() {
+        let authVC = AuthViewController()
+        authVC.delegate = self
+        authVC.modalPresentationStyle = .fullScreen
+        present(authVC, animated: true)
     }
 
     private func fetchProfile(token: String) {
@@ -83,26 +81,6 @@ final class SplashViewController: UIViewController {
                     self.logger.error("Failed to fetch profile: \(error.localizedDescription)")
                 }
             }
-        }
-    }
-}
-
-// MARK: - Navigation (prepare for segue)
-
-extension SplashViewController {
-
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == SegueIdentifier.showAuthentication {
-            guard let navigationController = segue.destination as? UINavigationController,
-                  let authVC = navigationController.viewControllers.first as? AuthViewController else {
-                assertionFailure(
-                    "Failed to prepare for \(SegueIdentifier.showAuthentication)"
-                )
-                return
-            }
-            authVC.delegate = self
-        } else {
-            super.prepare(for: segue, sender: sender)
         }
     }
 }

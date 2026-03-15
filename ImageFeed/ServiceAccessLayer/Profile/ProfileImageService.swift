@@ -41,7 +41,7 @@ final class ProfileImageService: ProfileImageProtocol {
    
     private let logger = AppLogger.logger(category: "ProfileImage")
     
-    private (set) var avatarURL: String?
+    private(set) var avatarURL: String?
    
     private var task: URLSessionTask?
 
@@ -71,7 +71,7 @@ final class ProfileImageService: ProfileImageProtocol {
                         object: self,
                         userInfo: ["URL": avatarURL])
             case .failure(let error):
-                self?.logger.error("[fetchProfileImageURL]: \(error.localizedDescription)")
+                self?.logger.error("[ProfileImageService fetchProfileImageURL]: \(error.localizedDescription)")
                 completion(.failure(error))
             }
         }

@@ -13,29 +13,41 @@ protocol WebViewViewControllerDelegate: AnyObject {
 final class WebViewViewController: UIViewController {
 
     private let logger = AppLogger.logger(category: "WebView")
-    @IBOutlet private var webView: WKWebView!
-    @IBOutlet private var progressView: UIProgressView!
+
+    private var authWebView: AuthWebView? { view as? AuthWebView }
 
     private var estimatedProgressObservation: NSKeyValueObservation?
 
     weak var delegate: WebViewViewControllerDelegate?
 
-    // MARK: - Lifecycle
+    init() {
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
+
+    override func loadView() {
+        view = AuthWebView()
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        webView.navigationDelegate = self
+        guard let authWebView else { return }
+        authWebView.onBackTapped = { [weak self] in
+            guard let self else { return }
+            self.delegate?.webViewViewControllerDidCancel(self)
+        }
+        authWebView.webView.navigationDelegate = self
         loadAuthView()
         updateProgress()
     }
 
-    @IBAction private func didTapBackButton(_ sender: Any?) {
-        delegate?.webViewViewControllerDidCancel(self)
-    }
-
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        estimatedProgressObservation = webView.observe(
+        guard let authWebView else { return }
+        estimatedProgressObservation = authWebView.webView.observe(
             \.estimatedProgress,
             options: [.new]
         ) { [weak self] _, _ in
@@ -51,33 +63,23 @@ final class WebViewViewController: UIViewController {
     }
 
     private func updateProgress() {
-        progressView.progress = Float(webView.estimatedProgress)
-        progressView.isHidden = fabs(webView.estimatedProgress - 1.0) <= 0.0001
+        guard let authWebView else { return }
+        let progress = authWebView.webView.estimatedProgress
+        authWebView.updateProgress(Float(progress), isHidden: fabs(Double(progress) - 1.0) <= 0.0001)
     }
-}
-
-// MARK: - Auth URL
-
-extension WebViewViewController {
 
     private func loadAuthView() {
         guard var urlComponents = URLComponents(string: URLs.unsplashAuthorizeURLString) else {
             return
         }
-        
         urlComponents.queryItems = [
             URLQueryItem(name: "client_id", value: OAuth2Constants.accessKey),
             URLQueryItem(name: "redirect_uri", value: OAuth2Constants.redirectURI),
             URLQueryItem(name: "response_type", value: OAuth2Constants.responseType),
             URLQueryItem(name: "scope", value: OAuth2Constants.accessScope)
         ]
-        
-        guard let url = urlComponents.url else {
-            return
-        }
-        
-        let request = URLRequest(url: url)
-        webView.load(request)
+        guard let url = urlComponents.url else { return }
+        authWebView?.webView.load(URLRequest(url: url))
     }
 }
 
@@ -97,7 +99,7 @@ extension WebViewViewController: WKNavigationDelegate {
             decisionHandler(.allow)
         }
     }
-    
+
     private func code(from navigationAction: WKNavigationAction) -> String? {
         if
             let url = navigationAction.request.url,

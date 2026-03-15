@@ -24,22 +24,22 @@ extension URLSession {
 
         let task = dataTask(with: request) { data, response, error in
             if let error {
-                Self.logger.error("[data]: NetworkError - urlRequestError(\(error.localizedDescription))")
+                Self.logger.error("[data(for:)]: NetworkError - urlRequestError \(error.localizedDescription)")
                 fulfillOnMain(.failure(NetworkError.urlRequestError(error)))
                 return
             }
             guard let response = response as? HTTPURLResponse else {
-                Self.logger.error("[data]: NetworkError - urlSessionError (invalid response)")
+                Self.logger.error("[data(for:)]: NetworkError - urlSessionError (invalid response)")
                 fulfillOnMain(.failure(NetworkError.urlSessionError))
                 return
             }
             guard (200 ..< 300).contains(response.statusCode) else {
-                Self.logger.error("[data]: NetworkError - код ошибки \(response.statusCode)")
+                Self.logger.error("[data(for:)]: NetworkError - код ошибки \(response.statusCode)")
                 fulfillOnMain(.failure(NetworkError.httpStatusCode(response.statusCode)))
                 return
             }
             guard let data else {
-                Self.logger.error("[data]: NetworkError - urlSessionError (no data)")
+                Self.logger.error("[data(for:)]: NetworkError - urlSessionError (no data)")
                 fulfillOnMain(.failure(NetworkError.urlSessionError))
                 return
             }
@@ -61,7 +61,7 @@ extension URLSession {
                     completion(.success(decoded))
                 } catch {
                     let dataString = String(data: data, encoding: .utf8) ?? ""
-                    Self.logger.error("Ошибка декодирования: \(error.localizedDescription), Данные: \(dataString)")
+                    Self.logger.error("[objectTask(for:)]: DecodingError - \(error.localizedDescription), данные: \(dataString)")
                     completion(.failure(error))
                 }
             case .failure(let error):

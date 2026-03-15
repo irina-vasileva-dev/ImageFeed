@@ -53,7 +53,7 @@ final class ProfileService: ProfileProtocol {
                 self?.profile = profile
                 completion(.success(profile))
             case .failure(let error):
-                self?.logger.error("[fetchProfile]: \(error.localizedDescription)")
+                self?.logger.error("[ProfileService fetchProfile]: \(error.localizedDescription)")
                 completion(.failure(error))
             }
             self?.task = nil
