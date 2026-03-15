@@ -25,7 +25,6 @@ final class OAuth2Service: OAuth2ServiceProtocol {
     static let shared = OAuth2Service()
 
     private let logger = AppLogger.logger(category: "OAuth2")
-    private let decoder = JSONDecoder()
     private let lock = NSLock()
     private var currentCode: String?
     private var currentTask: URLSessionDataTask?
@@ -65,7 +64,7 @@ final class OAuth2Service: OAuth2ServiceProtocol {
         logger.debug("Request: \(request.url?.absoluteString ?? "nil")")
         currentCode = code
         pendingCompletions = [completion]
-        let task = URLSession.shared.data(for: request) { [weak self] result in
+        let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
             self?.handleTokenTaskCompleted(code: code, result: result)
         }
         currentTask = task
@@ -73,7 +72,7 @@ final class OAuth2Service: OAuth2ServiceProtocol {
         task.resume()
     }
 
-    private func handleTokenTaskCompleted(code: String, result: Result<Data, Error>) {
+    private func handleTokenTaskCompleted(code: String, result: Result<OAuthTokenResponseBody, Error>) {
         lock.lock()
         guard currentCode == code else {
             lock.unlock()
@@ -86,15 +85,15 @@ final class OAuth2Service: OAuth2ServiceProtocol {
         lock.unlock()
 
         switch result {
-        case .success(let data):
-            handleTokenResponse(data: data) { responseResult in
-                completions.forEach { $0(responseResult) }
-            }
+        case .success(let body):
+            OAuth2TokenStorage.shared.token = body.accessToken
+            logger.debug("Access token received")
+            completions.forEach { $0(.success(body.accessToken)) }
         case .failure(let error):
             if (error as NSError).code == NSURLErrorCancelled {
                 completions.forEach { $0(.failure(OAuth2Error.cancelled)) }
             } else {
-                logger.error("Network error: \(error.localizedDescription)")
+                logger.error("[fetchOAuthToken]: \(error.localizedDescription)")
                 completions.forEach { $0(.failure(error)) }
             }
         }
@@ -119,18 +118,4 @@ final class OAuth2Service: OAuth2ServiceProtocol {
         return request
     }
 
-    private func handleTokenResponse(
-        data: Data,
-        completion: @escaping (Result<String, Error>) -> Void
-    ) {
-        do {
-            let body = try decoder.decode(OAuthTokenResponseBody.self, from: data)
-            OAuth2TokenStorage.shared.token = body.accessToken
-            logger.debug("Access token received")
-            completion(.success(body.accessToken))
-        } catch {
-            logger.error("Decoding error: \(error.localizedDescription)")
-            completion(.failure(OAuth2Error.decodingFailed(error)))
-        }
-    }
 }

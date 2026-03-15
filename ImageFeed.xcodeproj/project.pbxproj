@@ -17,6 +17,10 @@
 		CE85F2372F1F25B6005EB4A3 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE85F2352F1F25B6005EB4A3 /* AppLogger.swift */; };
 		CE85F23A2F1F2801005EB4A3 /* SegueIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE85F2382F1F2801005EB4A3 /* SegueIdentifiers.swift */; };
 		CE85F23B2F1F2801005EB4A3 /* UIColor+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE85F2392F1F2801005EB4A3 /* UIColor+Hex.swift */; };
+		CE900D062F67044400F49EA0 /* ProfileImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA861572F66F34700E413E5 /* ProfileImageService.swift */; };
+		CE900D092F671B2B00F49EA0 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = CE900D082F671B2B00F49EA0 /* Kingfisher */; };
+		CE900D0C2F672D2900F49EA0 /* SwiftKeychainWrapper in Frameworks */ = {isa = PBXBuildFile; productRef = CE900D0B2F672D2900F49EA0 /* SwiftKeychainWrapper */; };
+		CE900D102F67305400F49EA0 /* TabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE900D0E2F672EF200F49EA0 /* TabBarController.swift */; };
 		CE9A3F822EA135900062B832 /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE9A3F812EA135900062B832 /* ProfileViewController.swift */; };
 		CE9A3F852EA545DB0062B832 /* SingleImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE9A3F842EA545DB0062B832 /* SingleImageViewController.swift */; };
 		CEA861492F61E14C00E413E5 /* ProgressHUD in Frameworks */ = {isa = PBXBuildFile; productRef = CEA861482F61E14C00E413E5 /* ProgressHUD */; };
@@ -50,11 +54,13 @@
 		CE85F2352F1F25B6005EB4A3 /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
 		CE85F2382F1F2801005EB4A3 /* SegueIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegueIdentifiers.swift; sourceTree = "<group>"; };
 		CE85F2392F1F2801005EB4A3 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
+		CE900D0E2F672EF200F49EA0 /* TabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarController.swift; sourceTree = "<group>"; };
 		CE9A3F812EA135900062B832 /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		CE9A3F842EA545DB0062B832 /* SingleImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleImageViewController.swift; sourceTree = "<group>"; };
 		CEA8614A2F657D4900E413E5 /* UIBlockingProgressHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIBlockingProgressHUD.swift; sourceTree = "<group>"; };
 		CEA8614C2F65818B00E413E5 /* ProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileService.swift; sourceTree = "<group>"; };
 		CEA8614F2F6582CA00E413E5 /* ProfileResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileResult.swift; sourceTree = "<group>"; };
+		CEA861572F66F34700E413E5 /* ProfileImageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileImageService.swift; sourceTree = "<group>"; };
 		CEB71EEA2E8EE54C00AAD438 /* ImageFeed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageFeed.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEE2E4E92E9C045C009E5D07 /* ImagesListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagesListCell.swift; sourceTree = "<group>"; };
 		CEE2E4EA2E9C045C009E5D07 /* ImagesListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagesListViewController.swift; sourceTree = "<group>"; };
@@ -78,7 +84,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE900D092F671B2B00F49EA0 /* Kingfisher in Frameworks */,
 				CEFD8D6D2F1DE85100CA7E75 /* WebKit.framework in Frameworks */,
+				CE900D0C2F672D2900F49EA0 /* SwiftKeychainWrapper in Frameworks */,
 				CEA861492F61E14C00E413E5 /* ProgressHUD in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -124,6 +132,14 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		CE900D0D2F672EE100F49EA0 /* TabBar */ = {
+			isa = PBXGroup;
+			children = (
+				CE900D0E2F672EF200F49EA0 /* TabBarController.swift */,
+			);
+			path = TabBar;
+			sourceTree = "<group>";
+		};
 		CE9A3F802EA135470062B832 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
@@ -151,6 +167,7 @@
 		CEA8614E2F65828800E413E5 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				CEA861572F66F34700E413E5 /* ProfileImageService.swift */,
 				CEA8614F2F6582CA00E413E5 /* ProfileResult.swift */,
 				CEA8614C2F65818B00E413E5 /* ProfileService.swift */,
 			);
@@ -215,6 +232,7 @@
 				CEFD8D682F1DE85100CA7E75 /* ServiceAccessLayer */,
 				CE9A3F832EA545BB0062B832 /* SingleImage */,
 				CE85F2252F1F2601005EB4A3 /* SplashViewController */,
+				CE900D0D2F672EE100F49EA0 /* TabBar */,
 				CE85F2202F1F25A4005EB4A3 /* Utils */,
 				CEE2E4ED2E9C045C009E5D07 /* Info.plist */,
 				CE85F22D2F1F263C005EB4A3 /* Resources */,
@@ -269,6 +287,8 @@
 			name = ImageFeed;
 			packageProductDependencies = (
 				CEA861482F61E14C00E413E5 /* ProgressHUD */,
+				CE900D082F671B2B00F49EA0 /* Kingfisher */,
+				CE900D0B2F672D2900F49EA0 /* SwiftKeychainWrapper */,
 			);
 			productName = ImageFeed;
 			productReference = CEB71EEA2E8EE54C00AAD438 /* ImageFeed.app */;
@@ -300,6 +320,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				CEA861472F61E14C00E413E5 /* XCRemoteSwiftPackageReference "ProgressHUD" */,
+				CE900D072F671B2B00F49EA0 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				CE900D0A2F672D2900F49EA0 /* XCRemoteSwiftPackageReference "SwiftKeychainWrapper" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CEB71EEB2E8EE54C00AAD438 /* Products */;
@@ -331,6 +353,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE900D102F67305400F49EA0 /* TabBarController.swift in Sources */,
+				CE900D062F67044400F49EA0 /* ProfileImageService.swift in Sources */,
 				CEA861562F65A50700E413E5 /* UIBlockingProgressHUD.swift in Sources */,
 				CEA861552F65A50200E413E5 /* ProfileService.swift in Sources */,
 				CEE2E4F92E9C045C009E5D07 /* ImagesListCell.swift in Sources */,
@@ -594,6 +618,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		CE900D072F671B2B00F49EA0 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.8.0;
+			};
+		};
+		CE900D0A2F672D2900F49EA0 /* XCRemoteSwiftPackageReference "SwiftKeychainWrapper" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jrendel/SwiftKeychainWrapper";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.1;
+			};
+		};
 		CEA861472F61E14C00E413E5 /* XCRemoteSwiftPackageReference "ProgressHUD" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/relatedcode/ProgressHUD";
@@ -605,6 +645,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		CE900D082F671B2B00F49EA0 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CE900D072F671B2B00F49EA0 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		CE900D0B2F672D2900F49EA0 /* SwiftKeychainWrapper */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CE900D0A2F672D2900F49EA0 /* XCRemoteSwiftPackageReference "SwiftKeychainWrapper" */;
+			productName = SwiftKeychainWrapper;
+		};
 		CEA861482F61E14C00E413E5 /* ProgressHUD */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = CEA861472F61E14C00E413E5 /* XCRemoteSwiftPackageReference "ProgressHUD" */;

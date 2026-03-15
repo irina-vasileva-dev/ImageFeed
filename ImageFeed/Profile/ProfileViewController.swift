@@ -1,9 +1,11 @@
 import UIKit
+import Kingfisher
 
 final class ProfileViewController: UIViewController {
     
     private let profileService = ProfileService.shared
-    
+    private var profileImageServiceObserver: NSObjectProtocol?
+
     // MARK: - UI Elements
     private lazy var mainStackView: UIStackView = {
         let stackView = UIStackView()
@@ -78,7 +80,21 @@ final class ProfileViewController: UIViewController {
         
         if let profile = ProfileService.shared.profile {
             updateProfileDetails(with: profile)
+            if ProfileImageService.shared.avatarURL == nil {
+                ProfileImageService.shared.fetchProfileImageURL(username: profile.username) { _ in }
+            }
         }
+        
+        profileImageServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ProfileImageService.didChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                self.updateAvatar()
+            }
+        updateAvatar()
     }
     
     // MARK: - Private Methods
@@ -95,6 +111,16 @@ final class ProfileViewController: UIViewController {
             : profile.bio
     }
     
+    private func updateAvatar() {
+        guard
+            let profileImageURL = ProfileImageService.shared.avatarURL,
+            let url = URL(string: profileImageURL)
+        else { return }
+        profileImageView.kf.setImage(
+            with: url,
+            options: [.processor(DownsamplingImageProcessor(size: CGSize(width: UIConstants.profileImageSize * 2, height: UIConstants.profileImageSize * 2)))])
+    }
+
     private func setupUI() {
         view.backgroundColor = Colors.background
         
@@ -104,6 +130,7 @@ final class ProfileViewController: UIViewController {
     }
     
     private func configureProfileImageView() {
+        profileImageView.layer.cornerRadius = UIConstants.profileImageSize / 2
         NSLayoutConstraint.activate([
             profileImageView.heightAnchor.constraint(equalToConstant: UIConstants.profileImageSize),
             profileImageView.widthAnchor.constraint(equalToConstant: UIConstants.profileImageSize)
@@ -168,13 +195,14 @@ final class ProfileViewController: UIViewController {
     
     // MARK: - Actions
     @objc private func logoutButtonTapped() {
-        removeAllLabels()
+        removeProfileLabels()
     }
     
-    private func removeAllLabels() {
-        view.subviews
-            .compactMap { $0 as? UILabel }
-            .forEach { $0.removeFromSuperview() }
+    private func removeProfileLabels() {
+        [userNameLabel, loginNameLabel, descriptionLabel].forEach { label in
+            mainStackView.removeArrangedSubview(label)
+            label.removeFromSuperview()
+        }
     }
 }
 

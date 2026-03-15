@@ -3,7 +3,7 @@ import UIKit
 // MARK: - AuthViewControllerDelegate
 
 protocol AuthViewControllerDelegate: AnyObject {
-    func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String)
+    func authViewController(_ vc: AuthViewController, didAuthenticateWithToken token: String)
 }
 
 // MARK: - AuthViewController
@@ -11,6 +11,13 @@ protocol AuthViewControllerDelegate: AnyObject {
 final class AuthViewController: UIViewController {
 
     weak var delegate: AuthViewControllerDelegate?
+
+    private let oauth2Service: OAuth2ServiceProtocol
+
+    required init?(coder: NSCoder) {
+        self.oauth2Service = OAuth2Service.shared
+        super.init(coder: coder)
+    }
 
     @IBOutlet private weak var startButton: UIButton!
 
@@ -62,10 +69,33 @@ extension AuthViewController: WebViewViewControllerDelegate {
         _ vc: WebViewViewController,
         didAuthenticateWithCode code: String
     ) {
-        delegate?.authViewController(self, didAuthenticateWithCode: code)
+        UIBlockingProgressHUD.show()
+        oauth2Service.fetchOAuthToken(code) { [weak self] result in
+            DispatchQueue.main.async {
+                UIBlockingProgressHUD.dismiss()
+                guard let self else { return }
+                switch result {
+                case .success(let token):
+                    self.delegate?.authViewController(self, didAuthenticateWithToken: token)
+                case .failure(let error):
+                    if case OAuth2Error.cancelled = error { return }
+                    self.showAuthErrorAlert()
+                }
+            }
+        }
     }
-    
+
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
         dismiss(animated: true)
+    }
+
+    private func showAuthErrorAlert() {
+        let alert = UIAlertController(
+            title: "Что-то пошло не так",
+            message: "Не удалось войти в систему",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Ок", style: .default))
+        present(alert, animated: true)
     }
 }
