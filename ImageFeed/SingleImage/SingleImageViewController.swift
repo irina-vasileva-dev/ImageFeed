@@ -40,14 +40,19 @@ final class SingleImageViewController: UIViewController {
     @IBAction private func didTapShareButton(_ sender: UIButton) {
         guard let image = image else { return }
         
-        let compressedImage = compressImageIfNeeded(image)
+        sender.isEnabled = false
         
-        let activityViewController = UIActivityViewController(
-            activityItems: [compressedImage],
-            applicationActivities: nil
-        )
-      
-        present(activityViewController, animated: true, completion: nil)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let compressedImage = self?.compressImageIfNeeded(image) ?? image
+            DispatchQueue.main.async {
+                sender.isEnabled = true
+                let activityViewController = UIActivityViewController(
+                    activityItems: [compressedImage],
+                    applicationActivities: nil
+                )
+                self?.present(activityViewController, animated: true, completion: nil)
+            }
+        }
     }
     
     private func setupImageLayout() {

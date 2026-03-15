@@ -2,6 +2,8 @@ import UIKit
 
 final class ProfileViewController: UIViewController {
     
+    private let profileService = ProfileService.shared
+    
     // MARK: - UI Elements
     private lazy var mainStackView: UIStackView = {
         let stackView = UIStackView()
@@ -16,22 +18,20 @@ final class ProfileViewController: UIViewController {
         let imageView = UIImageView()
         imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(named: Profile.profileImage)
+        imageView.image = UIImage(named: ProfileOld.profileImage)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
     
     private lazy var userNameLabel: UILabel = {
         let label = UILabel()
-        label.text = Profile.userName
         label.font = .boldSystemFont(ofSize: UIConstants.boldFontSize)
         label.textColor = .white
         return label
     }()
     
-    private lazy var nickNameLabel: UILabel = {
+    private lazy var loginNameLabel: UILabel = {
         let label = UILabel()
-        label.text = Profile.nickName
         label.font = .systemFont(ofSize: UIConstants.detailFontSize)
         label.textColor = Colors.nicknameGray
         return label
@@ -39,7 +39,6 @@ final class ProfileViewController: UIViewController {
     
     private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
-        label.text = Profile.description
         label.font = .systemFont(ofSize: UIConstants.detailFontSize)
         label.textColor = .white
         return label
@@ -47,7 +46,7 @@ final class ProfileViewController: UIViewController {
     
     private lazy var logoutButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(named: Profile.logout), for: .normal)
+        button.setImage(UIImage(named: ProfileOld.logout), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(logoutButtonTapped), for: .touchUpInside)
         return button
@@ -55,7 +54,7 @@ final class ProfileViewController: UIViewController {
     
     private lazy var favoritesLabel: UILabel = {
         let label = UILabel()
-        label.text = Profile.favorites
+        label.text = ProfileOld.favorites
         label.font = .boldSystemFont(ofSize: UIConstants.boldFontSize)
         label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -66,7 +65,7 @@ final class ProfileViewController: UIViewController {
         let imageView = UIImageView()
         imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(named: Profile.noPhoto)
+        imageView.image = UIImage(named: ProfileOld.noPhoto)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -76,9 +75,26 @@ final class ProfileViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
+        
+        if let profile = ProfileService.shared.profile {
+            updateProfileDetails(with: profile)
+        }
     }
     
     // MARK: - Private Methods
+    
+    private func updateProfileDetails(with profile: Profile) {
+        userNameLabel.text = profile.name.isEmpty
+            ? "Имя не указано"
+            : profile.name
+        loginNameLabel.text = profile.loginName.isEmpty
+            ? "@неизвестный_пользователь"
+            : profile.loginName
+        descriptionLabel.text = (profile.bio?.isEmpty ?? true)
+            ? "Профиль не заполнен"
+            : profile.bio
+    }
+    
     private func setupUI() {
         view.backgroundColor = Colors.background
         
@@ -102,7 +118,7 @@ final class ProfileViewController: UIViewController {
     private func setupStackViewHierarchy() {
         mainStackView.addArrangedSubview(profileImageView)
         mainStackView.addArrangedSubview(userNameLabel)
-        mainStackView.addArrangedSubview(nickNameLabel)
+        mainStackView.addArrangedSubview(loginNameLabel)
         mainStackView.addArrangedSubview(descriptionLabel)
     }
     
@@ -186,12 +202,9 @@ private enum Colors {
     static let nicknameGray = UIColor(hex: "#AEAFB4")
 }
 
-private enum Profile {
+private enum ProfileOld {
     static let noPhoto = "no_photo"
     static let favorites = "Избранное"
     static let logout = "logout"
-    static let description = "Hello, world!"
-    static let nickName = "@ekaterina_nov"
-    static let userName = "Екатерина Новикова"
     static let profileImage = "profile_image"
 }

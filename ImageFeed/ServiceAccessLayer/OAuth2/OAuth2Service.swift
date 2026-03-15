@@ -6,6 +6,7 @@ enum OAuth2Error: Error {
     case invalidURL
     case invalidHTTPResponse
     case decodingFailed(Error)
+    case cancelled
 }
 
 // MARK: - OAuth2ServiceProtocol
@@ -25,6 +26,10 @@ final class OAuth2Service: OAuth2ServiceProtocol {
 
     private let logger = AppLogger.logger(category: "OAuth2")
     private let decoder = JSONDecoder()
+    private let lock = NSLock()
+    private var currentCode: String?
+    private var currentTask: URLSessionDataTask?
+    private var pendingCompletions: [(Result<String, Error>) -> Void] = []
 
     private init() {}
 
@@ -32,25 +37,67 @@ final class OAuth2Service: OAuth2ServiceProtocol {
         _ code: String,
         completion: @escaping (Result<String, Error>) -> Void
     ) {
+        lock.lock()
+
+        if let existingCode = currentCode {
+            if existingCode == code {
+                pendingCompletions.append(completion)
+                lock.unlock()
+                return
+            }
+            currentTask?.cancel()
+            let previousCompletions = pendingCompletions
+            currentCode = nil
+            currentTask = nil
+            pendingCompletions = []
+            lock.unlock()
+            previousCompletions.forEach { $0(.failure(OAuth2Error.cancelled)) }
+            lock.lock()
+        }
+
         guard let request = makeTokenRequest(code: code) else {
+            lock.unlock()
             logger.error("Failed to build token request URL")
             completion(.failure(OAuth2Error.invalidURL))
             return
         }
 
         logger.debug("Request: \(request.url?.absoluteString ?? "nil")")
-
+        currentCode = code
+        pendingCompletions = [completion]
         let task = URLSession.shared.data(for: request) { [weak self] result in
-            guard let self else { return }
-            switch result {
-            case .success(let data):
-                self.handleTokenResponse(data: data, completion: completion)
-            case .failure(let error):
-                self.logger.error("Network error: \(error.localizedDescription)")
-                completion(.failure(error))
+            self?.handleTokenTaskCompleted(code: code, result: result)
+        }
+        currentTask = task
+        lock.unlock()
+        task.resume()
+    }
+
+    private func handleTokenTaskCompleted(code: String, result: Result<Data, Error>) {
+        lock.lock()
+        guard currentCode == code else {
+            lock.unlock()
+            return
+        }
+        let completions = pendingCompletions
+        currentCode = nil
+        currentTask = nil
+        pendingCompletions = []
+        lock.unlock()
+
+        switch result {
+        case .success(let data):
+            handleTokenResponse(data: data) { responseResult in
+                completions.forEach { $0(responseResult) }
+            }
+        case .failure(let error):
+            if (error as NSError).code == NSURLErrorCancelled {
+                completions.forEach { $0(.failure(OAuth2Error.cancelled)) }
+            } else {
+                logger.error("Network error: \(error.localizedDescription)")
+                completions.forEach { $0(.failure(error)) }
             }
         }
-        task.resume()
     }
 
     // MARK: - Private

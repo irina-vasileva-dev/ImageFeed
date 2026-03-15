@@ -10,4 +10,7 @@ enum URLs {
     
     static let unsplashOAuthTokenURL = "https://unsplash.com/oauth/token"
     
+    static let getUsersProfileURL = "https://api.unsplash.com/me"
+    
+    
 }
