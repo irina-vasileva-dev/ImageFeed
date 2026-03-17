@@ -44,6 +44,8 @@ final class ProfileImageService: ProfileImageProtocol {
     private(set) var avatarURL: String?
    
     private var task: URLSessionTask?
+    
+    private init() {}
 
     func fetchProfileImageURL(username: String, _ completion: @escaping (Result<String, Error>) -> Void) {
         task?.cancel()

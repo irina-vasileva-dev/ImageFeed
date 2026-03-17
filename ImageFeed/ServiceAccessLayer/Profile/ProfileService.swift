@@ -22,6 +22,8 @@ protocol ProfileProtocol: AnyObject {
 
 final class ProfileService: ProfileProtocol {
     static let shared = ProfileService()
+    
+    private init() {}
 
     private var task: URLSessionTask?
     private let urlSession = URLSession.shared
