@@ -20,22 +20,15 @@ final class ProfileView: UIView {
     }
 
     private enum Colors {
-        static let background = UIColor(hex: "#1A1B22")
-        static let nicknameGray = UIColor(hex: "#AEAFB4")
-    }
-
-    private enum Assets {
-        static let noPhoto = "no_photo"
-        static let favorites = "Избранное"
-        static let logout = "logout"
-        static let profileImage = "profile_image"
+        static let background = UIColor(resource: .ypBlack)
+        static let nicknameGray = UIColor(resource: .nicknameGray)
     }
 
     private(set) lazy var profileImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(named: Assets.profileImage)
+        imageView.image = UIImage(resource: .userStub)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -63,14 +56,14 @@ final class ProfileView: UIView {
 
     private(set) lazy var logoutButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(named: Assets.logout), for: .normal)
+        button.setImage(UIImage(resource: .logout), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button
-            .addTarget(
-                self,
-                action: #selector(logoutButtonTapped),
-                for: .touchUpInside
-            )
+        button.addAction(
+            UIAction { [weak self] _ in
+                self?.logoutButtonTapped()
+            },
+            for: .touchUpInside
+        )
         return button
     }()
 
@@ -85,7 +78,7 @@ final class ProfileView: UIView {
 
     private lazy var favoritesLabel: UILabel = {
         let label = UILabel()
-        label.text = Assets.favorites
+        label.text = Constants.favorites
         label.font = .boldSystemFont(ofSize: UIConstants.boldFontSize)
         label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -96,7 +89,7 @@ final class ProfileView: UIView {
         let imageView = UIImageView()
         imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(named: Assets.noPhoto)
+        imageView.image = UIImage(resource: .noPhoto)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -177,7 +170,7 @@ final class ProfileView: UIView {
         )
     }
 
-    @objc private func logoutButtonTapped() {
+    private func logoutButtonTapped() {
         onLogoutTapped?()
     }
 

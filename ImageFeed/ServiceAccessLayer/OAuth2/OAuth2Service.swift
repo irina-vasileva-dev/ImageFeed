@@ -7,6 +7,7 @@ enum OAuth2Error: Error {
     case invalidHTTPResponse
     case decodingFailed(Error)
     case cancelled
+    case noData
 }
 
 // MARK: - OAuth2ServiceProtocol
@@ -25,10 +26,11 @@ final class OAuth2Service: OAuth2ServiceProtocol {
     static let shared = OAuth2Service()
 
     private let logger = AppLogger.logger(category: "OAuth2")
-    private let lock = NSLock()
+    private let queue = DispatchQueue(label: "OAuth2ServiceQueue", qos: .userInitiated)
     private var currentCode: String?
-    private var currentTask: URLSessionDataTask?
+    private var currentTask: URLSessionTask?
     private var pendingCompletions: [(Result<String, Error>) -> Void] = []
+    private let decoder = JSONDecoder()
 
     private init() {}
 
@@ -36,66 +38,90 @@ final class OAuth2Service: OAuth2ServiceProtocol {
         _ code: String,
         completion: @escaping (Result<String, Error>) -> Void
     ) {
-        lock.lock()
+        queue.async { [weak self] in
+            self?.performFetch(code: code, completion: completion)
+        }
+    }
 
-        if let existingCode = currentCode {
-            if existingCode == code {
-                pendingCompletions.append(completion)
-                lock.unlock()
-                return
-            }
+    private func performFetch(
+        code: String,
+        completion: @escaping (Result<String, Error>) -> Void
+    ) {
+        if currentCode == code {
+            pendingCompletions.append(completion)
+            return
+        }
+
+        if let oldCode = currentCode {
+            logger.debug("Cancelling previous request for code: \(oldCode)")
             currentTask?.cancel()
-            let previousCompletions = pendingCompletions
-            currentCode = nil
-            currentTask = nil
-            pendingCompletions = []
-            lock.unlock()
-            previousCompletions.forEach { $0(.failure(OAuth2Error.cancelled)) }
-            lock.lock()
+            notifyPendingCompletions(with: .failure(OAuth2Error.cancelled))
         }
 
         guard let request = makeTokenRequest(code: code) else {
-            lock.unlock()
             logger.error("Failed to build token request URL")
             completion(.failure(OAuth2Error.invalidURL))
             return
         }
 
-        logger.debug("Request: \(request.url?.absoluteString ?? "nil")")
         currentCode = code
         pendingCompletions = [completion]
-        let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
-            self?.handleTokenTaskCompleted(code: code, result: result)
+        logger.debug("Starting token fetch for code: \(code)")
+
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            self?.queue.async {
+                self?.handleResponse(data: data, response: response, error: error, for: code)
+            }
         }
+
         currentTask = task
-        lock.unlock()
         task.resume()
     }
 
-    private func handleTokenTaskCompleted(code: String, result: Result<OAuthTokenResponseBody, Error>) {
-        lock.lock()
-        guard currentCode == code else {
-            lock.unlock()
+    private func handleResponse(
+        data: Data?,
+        response: URLResponse?,
+        error: Error?,
+        for code: String
+    ) {
+        defer {
+            currentCode = nil
+            currentTask = nil
+        }
+
+        guard currentCode == code else { return }
+
+        if let error = error {
+            if (error as NSError).code == NSURLErrorCancelled {
+                notifyPendingCompletions(with: .failure(OAuth2Error.cancelled))
+            } else {
+                logger.error("Network error: \(error.localizedDescription)")
+                notifyPendingCompletions(with: .failure(error))
+            }
             return
         }
-        let completions = pendingCompletions
-        currentCode = nil
-        currentTask = nil
-        pendingCompletions = []
-        lock.unlock()
 
-        switch result {
-        case .success(let body):
-            OAuth2TokenStorage.shared.token = body.accessToken
-            logger.debug("Access token received")
-            completions.forEach { $0(.success(body.accessToken)) }
-        case .failure(let error):
-            if (error as NSError).code == NSURLErrorCancelled {
-                completions.forEach { $0(.failure(OAuth2Error.cancelled)) }
-            } else {
-                logger.error("[OAuth2Service fetchOAuthToken]: \(error.localizedDescription)")
-                completions.forEach { $0(.failure(error)) }
-            }
+        guard let data else {
+            notifyPendingCompletions(with: .failure(OAuth2Error.noData))
+            return
+        }
+
+        do {
+            let tokenResponse = try decoder.decode(OAuthTokenResponseBody.self, from: data)
+            OAuth2TokenStorage.shared.token = tokenResponse.accessToken
+            logger.debug("Token received successfully")
+            notifyPendingCompletions(with: .success(tokenResponse.accessToken))
+        } catch {
+            logger.error("Decoding error: \(error.localizedDescription)")
+            notifyPendingCompletions(with: .failure(OAuth2Error.decodingFailed(error)))
+        }
+    }
+
+    private func notifyPendingCompletions(with result: Result<String, Error>) {
+        let completions = pendingCompletions
+        pendingCompletions = []
+        DispatchQueue.main.async {
+            completions.forEach { $0(result) }
         }
     }
 

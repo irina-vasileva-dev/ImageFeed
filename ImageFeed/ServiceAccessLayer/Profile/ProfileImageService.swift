@@ -7,10 +7,6 @@ struct ProfileImage: Codable {
     let medium: String?
     let large: String?
 
-    private enum CodingKeys: String, CodingKey {
-        case small, medium, large
-    }
-
     var bestForAvatar: String { large ?? medium ?? small }
 }
 

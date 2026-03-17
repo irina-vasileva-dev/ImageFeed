@@ -22,7 +22,7 @@ final class SingleImageView: UIView {
 
     private lazy var backButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "nav_bar_backward_btn"), for: .normal)
+        button.setImage(UIImage(resource: .navBarBackwardBtn), for: .normal)
         button.tintColor = .white
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
@@ -31,7 +31,7 @@ final class SingleImageView: UIView {
 
     private(set) lazy var shareButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "sharing_buttton"), for: .normal)
+        button.setImage(UIImage(resource: .sharingButtton), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
         return button
@@ -39,7 +39,7 @@ final class SingleImageView: UIView {
 
     private lazy var favoritesButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "favorites_button"), for: .normal)
+        button.setImage(UIImage(resource: .favoritesButton), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -55,7 +55,7 @@ final class SingleImageView: UIView {
     }
 
     private func setupUI() {
-        backgroundColor = UIColor(hex: "#1A1B22")
+        backgroundColor = UIColor(resource: .ypBlack)
         addSubview(scrollView)
         scrollView.addSubview(imageView)
         addSubview(backButton)

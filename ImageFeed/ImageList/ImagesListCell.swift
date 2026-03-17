@@ -3,12 +3,20 @@ import UIKit
 final class ImagesListCell: UITableViewCell {
 
     static let reuseIdentifier = "ImagesListCell"
+    
+    private enum UIConstants {
+        static let cornerRadius: CGFloat = 16
+        static let verticalInset: CGFloat = 4
+        static let horizontalInset: CGFloat = 16
+        static let overlayHeight: CGFloat = 30
+        static let overlayEndAlpha: CGFloat = 1.0
+    }
 
     private let cellImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        imageView.layer.cornerRadius = 16
+        imageView.layer.cornerRadius = UIConstants.cornerRadius
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -24,32 +32,35 @@ final class ImagesListCell: UITableViewCell {
     let likeButton: UIButton = {
         let button = UIButton(type: .custom)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(named: "like_button_on"), for: .normal)
+        button.setImage(UIImage(resource: .likeButtonOn), for: .normal)
         return button
     }()
 
-    private let gradientView: UIView = {
+    private let bottomOverlayView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.isUserInteractionEnabled = false
+        view.backgroundColor = .clear
         return view
     }()
-
-    private let gradientLayer = CAGradientLayer()
+    
+    private let overlayGradientLayer = CAGradientLayer()
 
     var imageCell: UIImageView { cellImageView }
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        contentView.backgroundColor = UIColor(hex: "#1A1B22")
+        contentView.backgroundColor = UIColor(resource: .ypBlack)
         contentView.addSubview(cellImageView)
-        contentView.insertSubview(gradientView, aboveSubview: cellImageView)
+        contentView.insertSubview(bottomOverlayView, aboveSubview: cellImageView)
         contentView.addSubview(likeButton)
         contentView.addSubview(dateLabel)
         setupConstraints()
-        setupGradientLayer()
-        gradientView.layer.cornerRadius = 16
-        gradientView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        gradientView.clipsToBounds = true
+        setupOverlayGradient()
+        
+        bottomOverlayView.layer.cornerRadius = UIConstants.cornerRadius
+        bottomOverlayView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        bottomOverlayView.clipsToBounds = true
     }
 
     required init?(coder: NSCoder) {
@@ -58,58 +69,44 @@ final class ImagesListCell: UITableViewCell {
 
     override func awakeFromNib() {
         super.awakeFromNib()
-        if gradientView.superview == nil {
-            setupGradientBackground()
-        }
     }
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            cellImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
-            cellImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            cellImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            cellImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -4),
+            cellImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: UIConstants.verticalInset),
+            cellImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: UIConstants.horizontalInset),
+            cellImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -UIConstants.horizontalInset),
+            cellImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -UIConstants.verticalInset),
             likeButton.topAnchor.constraint(equalTo: cellImageView.topAnchor),
             likeButton.trailingAnchor.constraint(equalTo: cellImageView.trailingAnchor),
             likeButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 44),
             likeButton.heightAnchor.constraint(equalToConstant: 44),
             dateLabel.leadingAnchor.constraint(equalTo: cellImageView.leadingAnchor, constant: 8),
             dateLabel.bottomAnchor.constraint(equalTo: cellImageView.bottomAnchor, constant: -8),
-            gradientView.leadingAnchor.constraint(equalTo: cellImageView.leadingAnchor),
-            gradientView.trailingAnchor.constraint(equalTo: cellImageView.trailingAnchor),
-            gradientView.bottomAnchor.constraint(equalTo: cellImageView.bottomAnchor),
-            gradientView.heightAnchor.constraint(equalToConstant: 30)
+            bottomOverlayView.leadingAnchor.constraint(equalTo: cellImageView.leadingAnchor),
+            bottomOverlayView.trailingAnchor.constraint(equalTo: cellImageView.trailingAnchor),
+            bottomOverlayView.bottomAnchor.constraint(equalTo: cellImageView.bottomAnchor),
+            bottomOverlayView.heightAnchor.constraint(equalToConstant: UIConstants.overlayHeight)
         ])
     }
-
-    private func setupGradientBackground() {
-        contentView.insertSubview(gradientView, aboveSubview: cellImageView)
-        NSLayoutConstraint.activate([
-            gradientView.leadingAnchor.constraint(equalTo: cellImageView.leadingAnchor),
-            gradientView.trailingAnchor.constraint(equalTo: cellImageView.trailingAnchor),
-            gradientView.bottomAnchor.constraint(equalTo: cellImageView.bottomAnchor),
-            gradientView.heightAnchor.constraint(equalToConstant: 30)
-        ])
-        gradientView.layer.cornerRadius = 16
-        gradientView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        gradientView.clipsToBounds = true
-        setupGradientLayer()
-    }
-
-    private func setupGradientLayer() {
-        gradientLayer.colors = [
-            UIColor(hex: "1A1B22").withAlphaComponent(0.0).cgColor,
-            UIColor(hex: "1A1B22").withAlphaComponent(1.0).cgColor
+    
+    private func setupOverlayGradient() {
+        overlayGradientLayer.colors = [
+            UIColor(resource: .ypBlack).withAlphaComponent(0.0).cgColor,
+            UIColor(resource: .ypBlack).withAlphaComponent(UIConstants.overlayEndAlpha).cgColor
         ]
-        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
-        gradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
-        gradientLayer.locations = [0.0, 1.0]
-        gradientView.layer.insertSublayer(gradientLayer, at: 0)
+        overlayGradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
+        overlayGradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
+        overlayGradientLayer.locations = [0.0, 1.0]
+        
+        if overlayGradientLayer.superlayer == nil {
+            bottomOverlayView.layer.insertSublayer(overlayGradientLayer, at: 0)
+        }
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        gradientLayer.frame = gradientView.bounds
+        overlayGradientLayer.frame = bottomOverlayView.bounds
         contentView.bringSubviewToFront(dateLabel)
         contentView.bringSubviewToFront(likeButton)
     }

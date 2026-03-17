@@ -40,7 +40,7 @@ final class AuthViewController: UIViewController {
         navigationController?.navigationBar.backIndicatorImage = UIImage(named: "backward")
         navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(named: "backward")
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        navigationItem.backBarButtonItem?.tintColor = UIColor(hex: "#1A1B22")
+        navigationItem.backBarButtonItem?.tintColor = UIColor(resource: .ypBlack)
     }
 
     private func openWebView() {

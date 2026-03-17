@@ -22,7 +22,7 @@ final class AuthWebView: UIView {
 
     private lazy var backButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "backward"), for: .normal)
+        button.setImage(UIImage(resource: .backward), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         return button

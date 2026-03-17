@@ -5,7 +5,7 @@ final class AuthView: UIView {
     var onLoginTapped: (() -> Void)?
 
     private lazy var logoImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "logo_of_unsplash"))
+        let imageView = UIImageView(image: UIImage(resource: .logoOfUnsplash))
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -35,7 +35,7 @@ final class AuthView: UIView {
     }
 
     private func setupUI() {
-        backgroundColor = UIColor(hex: "#1A1B22")
+        backgroundColor = UIColor(resource: .ypBlack)
         addSubview(logoImageView)
         addSubview(startButton)
         NSLayoutConstraint.activate([
