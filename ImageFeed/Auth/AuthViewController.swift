@@ -3,7 +3,7 @@ import UIKit
 // MARK: - AuthViewControllerDelegate
 
 protocol AuthViewControllerDelegate: AnyObject {
-    func authViewController(_ vc: AuthViewController, didAuthenticateWithCode code: String)
+    func authViewController(_ vc: AuthViewController, didAuthenticateWithToken token: String)
 }
 
 // MARK: - AuthViewController
@@ -12,46 +12,42 @@ final class AuthViewController: UIViewController {
 
     weak var delegate: AuthViewControllerDelegate?
 
-    @IBOutlet private weak var startButton: UIButton!
+    private let oauth2Service: OAuth2ServiceProtocol
 
-    // MARK: - Lifecycle
+    private var authView: AuthView? { view as? AuthView }
+
+    init(oauth2Service: OAuth2ServiceProtocol = OAuth2Service.shared) {
+        self.oauth2Service = oauth2Service
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        self.oauth2Service = OAuth2Service.shared
+        super.init(coder: coder)
+    }
+
+    override func loadView() {
+        view = AuthView()
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        authView?.onLoginTapped = { [weak self] in self?.openWebView() }
         configureBackButton()
-        startButton.titleLabel?.font = Fonts.ysDisplayBold17 ?? .boldSystemFont(ofSize: 17)
     }
-
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == SegueIdentifier.showWebView {
-            guard let webViewVC = segue.destination as? WebViewViewController else {
-                assertionFailure("Failed to prepare for \(SegueIdentifier.showWebView)")
-                return
-            }
-            webViewVC.delegate = self
-        } else {
-            super.prepare(for: segue, sender: sender)
-        }
-    }
-
-    // MARK: - Private
 
     private func configureBackButton() {
-        navigationController?.navigationBar.backIndicatorImage = UIImage(
-            named: "backward"
-        )
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(
-            named: "backward"
-        )
-        navigationItem.backBarButtonItem = UIBarButtonItem(
-            title: "",
-            style: .plain,
-            target: nil,
-            action: nil
-        )
-        navigationItem.backBarButtonItem?.tintColor = UIColor(
-            resource: .ypBlack
-        )
+        navigationController?.navigationBar.backIndicatorImage = UIImage(named: "backward")
+        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(named: "backward")
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        navigationItem.backBarButtonItem?.tintColor = UIColor(resource: .ypBlack)
+    }
+
+    private func openWebView() {
+        let webViewVC = WebViewViewController()
+        webViewVC.delegate = self
+        webViewVC.modalPresentationStyle = .fullScreen
+        present(webViewVC, animated: true)
     }
 }
 
@@ -62,10 +58,33 @@ extension AuthViewController: WebViewViewControllerDelegate {
         _ vc: WebViewViewController,
         didAuthenticateWithCode code: String
     ) {
-        delegate?.authViewController(self, didAuthenticateWithCode: code)
+        UIBlockingProgressHUD.show()
+        oauth2Service.fetchOAuthToken(code) { [weak self] result in
+            DispatchQueue.main.async {
+                UIBlockingProgressHUD.dismiss()
+                guard let self else { return }
+                switch result {
+                case .success(let token):
+                    self.delegate?.authViewController(self, didAuthenticateWithToken: token)
+                case .failure(let error):
+                    if case OAuth2Error.cancelled = error { return }
+                    self.showAuthErrorAlert()
+                }
+            }
+        }
     }
-    
+
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
         dismiss(animated: true)
+    }
+
+    private func showAuthErrorAlert() {
+        let alert = UIAlertController(
+            title: "Что-то пошло не так(",
+            message: "Не удалось войти в систему",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Ок", style: .default))
+        present(alert, animated: true)
     }
 }

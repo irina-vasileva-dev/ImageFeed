@@ -6,6 +6,8 @@ enum OAuth2Error: Error {
     case invalidURL
     case invalidHTTPResponse
     case decodingFailed(Error)
+    case cancelled
+    case noData
 }
 
 // MARK: - OAuth2ServiceProtocol
@@ -24,6 +26,10 @@ final class OAuth2Service: OAuth2ServiceProtocol {
     static let shared = OAuth2Service()
 
     private let logger = AppLogger.logger(category: "OAuth2")
+    private let queue = DispatchQueue(label: "OAuth2ServiceQueue", qos: .userInitiated)
+    private var currentCode: String?
+    private var currentTask: URLSessionTask?
+    private var pendingCompletions: [(Result<String, Error>) -> Void] = []
     private let decoder = JSONDecoder()
 
     private init() {}
@@ -32,25 +38,91 @@ final class OAuth2Service: OAuth2ServiceProtocol {
         _ code: String,
         completion: @escaping (Result<String, Error>) -> Void
     ) {
+        queue.async { [weak self] in
+            self?.performFetch(code: code, completion: completion)
+        }
+    }
+
+    private func performFetch(
+        code: String,
+        completion: @escaping (Result<String, Error>) -> Void
+    ) {
+        if currentCode == code {
+            pendingCompletions.append(completion)
+            return
+        }
+
+        if let oldCode = currentCode {
+            logger.debug("Cancelling previous request for code: \(oldCode)")
+            currentTask?.cancel()
+            notifyPendingCompletions(with: .failure(OAuth2Error.cancelled))
+        }
+
         guard let request = makeTokenRequest(code: code) else {
             logger.error("Failed to build token request URL")
             completion(.failure(OAuth2Error.invalidURL))
             return
         }
 
-        logger.debug("Request: \(request.url?.absoluteString ?? "nil")")
+        currentCode = code
+        pendingCompletions = [completion]
+        logger.debug("Starting token fetch for code: \(code)")
 
-        let task = URLSession.shared.data(for: request) { [weak self] result in
-            guard let self else { return }
-            switch result {
-            case .success(let data):
-                self.handleTokenResponse(data: data, completion: completion)
-            case .failure(let error):
-                self.logger.error("Network error: \(error.localizedDescription)")
-                completion(.failure(error))
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            self?.queue.async {
+                self?.handleResponse(data: data, response: response, error: error, for: code)
             }
         }
+
+        currentTask = task
         task.resume()
+    }
+
+    private func handleResponse(
+        data: Data?,
+        response: URLResponse?,
+        error: Error?,
+        for code: String
+    ) {
+        defer {
+            currentCode = nil
+            currentTask = nil
+        }
+
+        guard currentCode == code else { return }
+
+        if let error = error {
+            if (error as NSError).code == NSURLErrorCancelled {
+                notifyPendingCompletions(with: .failure(OAuth2Error.cancelled))
+            } else {
+                logger.error("Network error: \(error.localizedDescription)")
+                notifyPendingCompletions(with: .failure(error))
+            }
+            return
+        }
+
+        guard let data else {
+            notifyPendingCompletions(with: .failure(OAuth2Error.noData))
+            return
+        }
+
+        do {
+            let tokenResponse = try decoder.decode(OAuthTokenResponseBody.self, from: data)
+            OAuth2TokenStorage.shared.token = tokenResponse.accessToken
+            logger.debug("Token received successfully")
+            notifyPendingCompletions(with: .success(tokenResponse.accessToken))
+        } catch {
+            logger.error("Decoding error: \(error.localizedDescription)")
+            notifyPendingCompletions(with: .failure(OAuth2Error.decodingFailed(error)))
+        }
+    }
+
+    private func notifyPendingCompletions(with result: Result<String, Error>) {
+        let completions = pendingCompletions
+        pendingCompletions = []
+        DispatchQueue.main.async {
+            completions.forEach { $0(result) }
+        }
     }
 
     // MARK: - Private
@@ -72,18 +144,4 @@ final class OAuth2Service: OAuth2ServiceProtocol {
         return request
     }
 
-    private func handleTokenResponse(
-        data: Data,
-        completion: @escaping (Result<String, Error>) -> Void
-    ) {
-        do {
-            let body = try decoder.decode(OAuthTokenResponseBody.self, from: data)
-            OAuth2TokenStorage.shared.token = body.accessToken
-            logger.debug("Access token received")
-            completion(.success(body.accessToken))
-        } catch {
-            logger.error("Decoding error: \(error.localizedDescription)")
-            completion(.failure(OAuth2Error.decodingFailed(error)))
-        }
-    }
 }

@@ -1,197 +1,62 @@
 import UIKit
+import Kingfisher
 
 final class ProfileViewController: UIViewController {
-    
-    // MARK: - UI Elements
-    private lazy var mainStackView: UIStackView = {
-        let stackView = UIStackView()
-        stackView.axis = .vertical
-        stackView.alignment = .leading
-        stackView.spacing = UIConstants.stackViewSpacing
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        return stackView
-    }()
-    
-    private lazy var profileImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.clipsToBounds = true
-        imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(named: Profile.profileImage)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        return imageView
-    }()
-    
-    private lazy var userNameLabel: UILabel = {
-        let label = UILabel()
-        label.text = Profile.userName
-        label.font = .boldSystemFont(ofSize: UIConstants.boldFontSize)
-        label.textColor = .white
-        return label
-    }()
-    
-    private lazy var nickNameLabel: UILabel = {
-        let label = UILabel()
-        label.text = Profile.nickName
-        label.font = .systemFont(ofSize: UIConstants.detailFontSize)
-        label.textColor = Colors.nicknameGray
-        return label
-    }()
-    
-    private lazy var descriptionLabel: UILabel = {
-        let label = UILabel()
-        label.text = Profile.description
-        label.font = .systemFont(ofSize: UIConstants.detailFontSize)
-        label.textColor = .white
-        return label
-    }()
-    
-    private lazy var logoutButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(UIImage(named: Profile.logout), for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(logoutButtonTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var favoritesLabel: UILabel = {
-        let label = UILabel()
-        label.text = Profile.favorites
-        label.font = .boldSystemFont(ofSize: UIConstants.boldFontSize)
-        label.textColor = .white
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private lazy var noPhotoImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.clipsToBounds = true
-        imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(named: Profile.noPhoto)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        return imageView
-    }()
-    
-    // MARK: - Lifecycle
+
+    private let profileService = ProfileService.shared
+    private var profileImageServiceObserver: NSObjectProtocol?
+
+    private var profileView: ProfileView? { view as? ProfileView }
+
+    private enum UIConstants {
+        static let profileImageSize: CGFloat = 70
+    }
+
+    override func loadView() {
+        view = ProfileView()
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
-        setupConstraints()
+        profileView?.onLogoutTapped = { [weak self] in
+            self?.profileView?.removeProfileLabelsFromStack()
+        }
+        if let profile = ProfileService.shared.profile {
+            updateProfileDetails(with: profile)
+            if ProfileImageService.shared.avatarURL == nil {
+                ProfileImageService.shared.fetchProfileImageURL(username: profile.username) { _ in }
+            }
+        }
+        profileImageServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ProfileImageService.didChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.updateAvatar()
+            }
+        updateAvatar()
     }
-    
-    // MARK: - Private Methods
-    private func setupUI() {
-        view.backgroundColor = Colors.background
-        
-        configureProfileImageView()
-        setupStackViewHierarchy()
-        addSubviews()
-    }
-    
-    private func configureProfileImageView() {
-        NSLayoutConstraint.activate([
-            profileImageView.heightAnchor.constraint(equalToConstant: UIConstants.profileImageSize),
-            profileImageView.widthAnchor.constraint(equalToConstant: UIConstants.profileImageSize)
-        ])
-        
-        NSLayoutConstraint.activate([
-            logoutButton.heightAnchor.constraint(equalToConstant: UIConstants.buttonSize),
-            logoutButton.widthAnchor.constraint(equalToConstant: UIConstants.buttonSize)
-        ])
-    }
-    
-    private func setupStackViewHierarchy() {
-        mainStackView.addArrangedSubview(profileImageView)
-        mainStackView.addArrangedSubview(userNameLabel)
-        mainStackView.addArrangedSubview(nickNameLabel)
-        mainStackView.addArrangedSubview(descriptionLabel)
-    }
-    
-    private func addSubviews() {
-        view.addSubview(mainStackView)
-        view.addSubview(logoutButton)
-        view.addSubview(favoritesLabel)
-        view.addSubview(noPhotoImageView)
-    }
-    
-    private func setupConstraints() {
-        let safeArea = view.safeAreaLayoutGuide
-        
-        NSLayoutConstraint.activate([
-            mainStackView.topAnchor.constraint(
-                equalTo: safeArea.topAnchor,
-                constant: UIConstants.stackViewTopOffset
-            ),
-            mainStackView.leadingAnchor.constraint(
-                equalTo: safeArea.leadingAnchor,
-                constant: UIConstants.stackViewLeadingOffset
-            ),
-            logoutButton.trailingAnchor.constraint(
-                equalTo: safeArea.trailingAnchor,
-                constant: -UIConstants.buttonTrailingOffset
-            ),
-            logoutButton.centerYAnchor.constraint(
-                equalTo: profileImageView.centerYAnchor
-            ),
-            favoritesLabel.leadingAnchor.constraint(
-                equalTo: safeArea.leadingAnchor,
-                constant: UIConstants.favoritesLabelLeading
-            ),
-            favoritesLabel.topAnchor.constraint(
-                equalTo: descriptionLabel.bottomAnchor,
-                constant: UIConstants.favoritesLabelTop
-            ),
-            noPhotoImageView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
-            noPhotoImageView.topAnchor.constraint(
-                equalTo: safeArea.topAnchor,
-                constant: UIConstants.noPhotoTop
-            ),
-            noPhotoImageView.heightAnchor.constraint(equalToConstant: UIConstants.noPhotoImageSize),
-            noPhotoImageView.widthAnchor.constraint(equalToConstant: UIConstants.noPhotoImageSize)
-        ])
-    }
-    
-    // MARK: - Actions
-    @objc private func logoutButtonTapped() {
-        removeAllLabels()
-    }
-    
-    private func removeAllLabels() {
-        view.subviews
-            .compactMap { $0 as? UILabel }
-            .forEach { $0.removeFromSuperview() }
-    }
-}
 
-// MARK: - Constants
-private enum UIConstants {
-    static let stackViewSpacing: CGFloat = 8
-    static let stackViewTopOffset: CGFloat = 32
-    static let stackViewLeadingOffset: CGFloat = 16
-    static let buttonTrailingOffset: CGFloat = 16
-    static let profileImageSize: CGFloat = 70
-    static let buttonSize: CGFloat = 44
-    static let boldFontSize: CGFloat = 23
-    static let detailFontSize: CGFloat = 13
-    
-    static let favoritesLabelLeading: CGFloat = 16
-    static let favoritesLabelTop: CGFloat = 24
-    
-    static let noPhotoImageSize: CGFloat = 115
-    static let noPhotoLeadingTrailing: CGFloat = 130
-    static let noPhotoTop: CGFloat = 376
-}
+    private func updateProfileDetails(with profile: Profile) {
+        profileView?.userNameLabel.text = profile.name.isEmpty
+            ? "Имя не указано"
+            : profile.name
+        profileView?.loginNameLabel.text = profile.loginName.isEmpty
+            ? "@неизвестный_пользователь"
+            : profile.loginName
+        profileView?.descriptionLabel.text = (profile.bio?.isEmpty ?? true)
+            ? "Профиль не заполнен"
+            : profile.bio
+    }
 
-private enum Colors {
-    static let background = UIColor(hex: "#1A1B22")
-    static let nicknameGray = UIColor(hex: "#AEAFB4")
-}
-
-private enum Profile {
-    static let noPhoto = "no_photo"
-    static let favorites = "Избранное"
-    static let logout = "logout"
-    static let description = "Hello, world!"
-    static let nickName = "@ekaterina_nov"
-    static let userName = "Екатерина Новикова"
-    static let profileImage = "profile_image"
+    private func updateAvatar() {
+        guard
+            let profileImageURL = ProfileImageService.shared.avatarURL,
+            let url = URL(string: profileImageURL)
+        else { return }
+        profileView?.profileImageView.kf.setImage(
+            with: url,
+            options: [.processor(DownsamplingImageProcessor(size: CGSize(width: UIConstants.profileImageSize * 2, height: UIConstants.profileImageSize * 2)))])
+    }
 }

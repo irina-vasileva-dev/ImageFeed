@@ -1,4 +1,5 @@
 import Foundation
+import SwiftKeychainWrapper
 
 // MARK: - OAuth2TokenStorageProtocol
 
@@ -16,12 +17,31 @@ final class OAuth2TokenStorage: OAuth2TokenStorageProtocol {
         case token
     }
 
+    private static let didLaunchBeforeKey = "OAuth2TokenStorage.didLaunchBefore"
+
+    private let keychain = KeychainWrapper.standard
+
     var token: String? {
-        get { userDefaults.string(forKey: Keys.token.rawValue) }
-        set { userDefaults.set(newValue, forKey: Keys.token.rawValue) }
+        get { keychain.string(forKey: Keys.token.rawValue) }
+        set {
+            if let newValue {
+                keychain.set(newValue, forKey: Keys.token.rawValue)
+            } else {
+                keychain.removeObject(forKey: Keys.token.rawValue)
+            }
+        }
     }
 
-    private let userDefaults = UserDefaults.standard
+    private init() {
+        clearTokenIfFreshInstall()
+    }
 
-    private init() {}
+    private func clearTokenIfFreshInstall() {
+        let didLaunchBefore = UserDefaults.standard.bool(
+            forKey: Self.didLaunchBeforeKey
+        )
+        guard !didLaunchBefore else { return }
+        keychain.removeObject(forKey: Keys.token.rawValue)
+        UserDefaults.standard.set(true, forKey: Self.didLaunchBeforeKey)
+    }
 }
