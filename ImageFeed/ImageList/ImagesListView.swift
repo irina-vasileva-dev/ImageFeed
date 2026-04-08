@@ -8,7 +8,6 @@ final class ImagesListView: UIView {
         table.separatorStyle = .none
         table.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
         table.translatesAutoresizingMaskIntoConstraints = false
-        table.rowHeight = 200
         return table
     }()
 
