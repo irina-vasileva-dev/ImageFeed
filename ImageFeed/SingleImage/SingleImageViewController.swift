@@ -1,6 +1,8 @@
 import UIKit
+import ProgressHUD
 
 final class SingleImageViewController: UIViewController {
+    private let imagesListService = ImagesListService.shared
 
     var image: UIImage? {
         didSet {
@@ -8,8 +10,18 @@ final class SingleImageViewController: UIViewController {
             singleImageView?.setImage(image)
         }
     }
+    
+    var imageURL: URL?
+    var photoId: String?
+    var isLiked: Bool = false {
+        didSet {
+            guard isViewLoaded else { return }
+            singleImageView?.setIsLiked(isLiked)
+        }
+    }
 
     private var singleImageView: SingleImageView? { view as? SingleImageView }
+    private var imageTask: URLSessionDataTask?
 
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
@@ -33,8 +45,14 @@ final class SingleImageViewController: UIViewController {
         singleImageView.onShareTapped = { [weak self] in
             self?.shareImage()
         }
+        singleImageView.onFavoritesTapped = { [weak self] in
+            self?.toggleLike()
+        }
+        singleImageView.setIsLiked(isLiked)
         if let image {
             singleImageView.setImage(image)
+        } else if let imageURL {
+            loadImage(from: imageURL)
         }
     }
 
@@ -59,6 +77,73 @@ final class SingleImageViewController: UIViewController {
                 self?.present(activityViewController, animated: true, completion: nil)
             }
         }
+    }
+    
+    private func loadImage(from url: URL) {
+        ProgressHUD.animate()
+        imageTask?.cancel()
+        
+        imageTask = URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                ProgressHUD.dismiss()
+                
+                if let error {
+                    self.showImageLoadingErrorAlert(message: error.localizedDescription)
+                    return
+                }
+                
+                guard let data, let loadedImage = UIImage(data: data) else {
+                    self.showImageLoadingErrorAlert(message: "Не удалось загрузить изображение.")
+                    return
+                }
+                
+                self.image = loadedImage
+                self.singleImageView?.setImage(loadedImage)
+            }
+        }
+        imageTask?.resume()
+    }
+    
+    private func showImageLoadingErrorAlert(message: String) {
+        let alert = UIAlertController(
+            title: "Ошибка загрузки",
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Назад", style: .cancel) { [weak self] _ in
+            self?.dismiss(animated: true)
+        })
+        present(alert, animated: true)
+    }
+    
+    private func toggleLike() {
+        guard let photoId else { return }
+        UIBlockingProgressHUD.show()
+        imagesListService.changeLike(photoId: photoId, isLike: !isLiked) { [weak self] result in
+            UIBlockingProgressHUD.dismiss()
+            guard let self else { return }
+            switch result {
+            case .success:
+                if let index = self.imagesListService.photos.firstIndex(where: { $0.id == photoId }) {
+                    self.isLiked = self.imagesListService.photos[index].isLiked
+                } else {
+                    self.isLiked.toggle()
+                }
+            case .failure:
+                self.showLikeErrorAlert()
+            }
+        }
+    }
+    
+    private func showLikeErrorAlert() {
+        let alert = UIAlertController(
+            title: "Что-то пошло не так",
+            message: "Не удалось изменить лайк. Попробуйте позже.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Ок", style: .default))
+        present(alert, animated: true)
     }
 
     private func compressImageIfNeeded(_ image: UIImage) -> UIImage {

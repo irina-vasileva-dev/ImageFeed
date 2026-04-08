@@ -78,6 +78,12 @@ final class ProfileImageService: ProfileImageProtocol {
         task.resume()
     }
 
+    func resetSession() {
+        task?.cancel()
+        task = nil
+        avatarURL = nil
+    }
+
     // MARK: - Private
     
     private func makeProfileImageRequest(username: String, token: String) -> URLRequest? {
@@ -87,7 +93,7 @@ final class ProfileImageService: ProfileImageProtocol {
 
         var request = URLRequest(url: url)
         request.httpMethod = HTTPMethod.get.rawValue
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        UnsplashAPIHeaders.apply(to: &request, userAccessToken: token)
         return request
     }
 }

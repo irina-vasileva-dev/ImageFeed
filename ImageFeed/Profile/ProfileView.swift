@@ -17,11 +17,20 @@ final class ProfileView: UIView {
         static let favoritesLabelTop: CGFloat = 24
         static let noPhotoImageSize: CGFloat = 115
         static let noPhotoTop: CGFloat = 376
+        static let favoritesTableTop: CGFloat = 8
+
+        static let favoritesCountBadgeHeight: CGFloat = 22
+        static let favoritesCountPaddingLeadingTrailing: CGFloat = 12
+        static let favoritesCountPaddingTopBottom: CGFloat = 2
+
+        static let favoritesCountCornerRadius: CGFloat = 11
+        static let favoritesTitleToBadgeSpacing: CGFloat = 10
     }
 
     private enum Colors {
         static let background = UIColor(resource: .ypBlack)
         static let nicknameGray = UIColor(resource: .nicknameGray)
+        static let ypBlue = UIColor(resource: .ypBlue)
     }
 
     private(set) lazy var profileImageView: UIImageView = {
@@ -84,6 +93,34 @@ final class ProfileView: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
+    
+    private lazy var favoritesCountBadge: UIView = {
+        let view = UIView()
+        view.backgroundColor = Colors.ypBlue
+        view.layer.cornerRadius = UIConstants.favoritesCountCornerRadius
+        view.clipsToBounds = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private(set) lazy var favoritesCountLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: UIConstants.detailFontSize, weight: .medium)
+        label.textColor = .white
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private(set) lazy var favoritesTableView: UITableView = {
+        let tableView = UITableView()
+        tableView.backgroundColor = Colors.background
+        tableView.separatorStyle = .none
+        tableView.showsVerticalScrollIndicator = false
+        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 12, right: 0)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        return tableView
+    }()
 
     private lazy var noPhotoImageView: UIImageView = {
         let imageView = UIImageView()
@@ -124,6 +161,9 @@ final class ProfileView: UIView {
         addSubview(mainStackView)
         addSubview(logoutButton)
         addSubview(favoritesLabel)
+        addSubview(favoritesCountBadge)
+        favoritesCountBadge.addSubview(favoritesCountLabel)
+        addSubview(favoritesTableView)
         addSubview(noPhotoImageView)
         let safe = safeAreaLayoutGuide
         NSLayoutConstraint.activate(
@@ -155,6 +195,46 @@ final class ProfileView: UIView {
                     equalTo: descriptionLabel.bottomAnchor,
                     constant: UIConstants.favoritesLabelTop
                 ),
+            favoritesCountBadge.leadingAnchor
+                .constraint(
+                    equalTo: favoritesLabel.trailingAnchor,
+                    constant: UIConstants.favoritesTitleToBadgeSpacing
+                ),
+            favoritesCountBadge.centerYAnchor
+                .constraint(equalTo: favoritesLabel.centerYAnchor),
+            favoritesCountBadge.heightAnchor
+                .constraint(equalToConstant: UIConstants.favoritesCountBadgeHeight),
+            favoritesCountLabel.leadingAnchor
+                .constraint(
+                    equalTo: favoritesCountBadge.leadingAnchor,
+                    constant: UIConstants.favoritesCountPaddingLeadingTrailing
+                ),
+            favoritesCountLabel.trailingAnchor
+                .constraint(
+                    equalTo: favoritesCountBadge.trailingAnchor,
+                    constant: -UIConstants.favoritesCountPaddingLeadingTrailing
+                ),
+            favoritesCountLabel.topAnchor
+                .constraint(
+                    equalTo: favoritesCountBadge.topAnchor,
+                    constant: UIConstants.favoritesCountPaddingTopBottom
+                ),
+            favoritesCountLabel.bottomAnchor
+                .constraint(
+                    equalTo: favoritesCountBadge.bottomAnchor,
+                    constant: -UIConstants.favoritesCountPaddingTopBottom
+                ),
+            favoritesTableView.topAnchor
+                .constraint(
+                    equalTo: favoritesLabel.bottomAnchor,
+                    constant: UIConstants.favoritesTableTop
+                ),
+            favoritesTableView.leadingAnchor
+                .constraint(equalTo: safe.leadingAnchor),
+            favoritesTableView.trailingAnchor
+                .constraint(equalTo: safe.trailingAnchor),
+            favoritesTableView.bottomAnchor
+                .constraint(equalTo: safe.bottomAnchor),
             noPhotoImageView.centerXAnchor
                 .constraint(equalTo: safe.centerXAnchor),
             noPhotoImageView.topAnchor
@@ -173,11 +253,14 @@ final class ProfileView: UIView {
     private func logoutButtonTapped() {
         onLogoutTapped?()
     }
-
-    func removeProfileLabelsFromStack() {
-        [userNameLabel, loginNameLabel, descriptionLabel].forEach { label in
-            mainStackView.removeArrangedSubview(label)
-            label.removeFromSuperview()
-        }
+    
+    func setFavoritesCount(_ count: Int) {
+        favoritesCountLabel.text = "\(count)"
+        favoritesCountBadge.isHidden = count == 0
+    }
+    
+    func setEmptyFavoritesVisible(_ isVisible: Bool) {
+        noPhotoImageView.isHidden = !isVisible
+        favoritesTableView.isHidden = isVisible
     }
 }

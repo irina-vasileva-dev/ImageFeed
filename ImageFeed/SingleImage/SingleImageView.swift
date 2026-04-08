@@ -4,6 +4,7 @@ final class SingleImageView: UIView {
 
     var onBackTapped: (() -> Void)?
     var onShareTapped: (() -> Void)?
+    var onFavoritesTapped: (() -> Void)?
 
     private(set) lazy var scrollView: UIScrollView = {
         let scroll = UIScrollView()
@@ -19,7 +20,7 @@ final class SingleImageView: UIView {
         iv.translatesAutoresizingMaskIntoConstraints = true
         return iv
     }()
-
+    
     private lazy var backButton: UIButton = {
         let button = UIButton(type: .custom)
         button.setImage(UIImage(resource: .navBarBackwardBtn), for: .normal)
@@ -41,6 +42,7 @@ final class SingleImageView: UIView {
         let button = UIButton(type: .custom)
         button.setImage(UIImage(resource: .favoritesButton), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(favoritesButtonTapped), for: .touchUpInside)
         return button
     }()
 
@@ -85,6 +87,10 @@ final class SingleImageView: UIView {
     @objc private func shareButtonTapped() {
         onShareTapped?()
     }
+    
+    @objc private func favoritesButtonTapped() {
+        onFavoritesTapped?()
+    }
 
     func setImage(_ image: UIImage?) {
         imageView.image = image
@@ -121,5 +127,10 @@ final class SingleImageView: UIView {
             bottom: verticalInset,
             right: horizontalInset
         )
+    }
+    
+    func setIsLiked(_ isLiked: Bool) {
+        let imageName = isLiked ? "favorites_button_active" : "favorites_button"
+        favoritesButton.setImage(UIImage(named: imageName), for: .normal)
     }
 }
