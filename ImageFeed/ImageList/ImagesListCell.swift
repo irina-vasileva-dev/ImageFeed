@@ -1,9 +1,16 @@
 import UIKit
+import Kingfisher
+
+protocol ImagesListCellDelegate: AnyObject {
+    func imageListCellDidTapLike(_ cell: ImagesListCell)
+}
 
 final class ImagesListCell: UITableViewCell {
 
     static let reuseIdentifier = "ImagesListCell"
-    
+
+    private static let placeholderImage = UIImage(resource: .imagePlaceholder)
+
     private enum UIConstants {
         static let cornerRadius: CGFloat = 16
         static let verticalInset: CGFloat = 4
@@ -45,6 +52,8 @@ final class ImagesListCell: UITableViewCell {
     }()
     
     private let overlayGradientLayer = CAGradientLayer()
+    
+    weak var delegate: ImagesListCellDelegate?
 
     var imageCell: UIImageView { cellImageView }
 
@@ -61,6 +70,7 @@ final class ImagesListCell: UITableViewCell {
         bottomOverlayView.layer.cornerRadius = UIConstants.cornerRadius
         bottomOverlayView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         bottomOverlayView.clipsToBounds = true
+        likeButton.addTarget(self, action: #selector(likeButtonClicked), for: .touchUpInside)
     }
 
     required init?(coder: NSCoder) {
@@ -113,7 +123,18 @@ final class ImagesListCell: UITableViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        cellImageView.image = nil
+        cellImageView.kf.cancelDownloadTask()
+        cellImageView.image = Self.placeholderImage
         dateLabel.text = nil
+        setIsLiked(false)
+    }
+    
+    func setIsLiked(_ isLiked: Bool) {
+        let imageName = isLiked ? "like_button_on" : "like_button_off"
+        likeButton.setImage(UIImage(named: imageName), for: .normal)
+    }
+    
+    @IBAction private func likeButtonClicked() {
+        delegate?.imageListCellDidTapLike(self)
     }
 }
